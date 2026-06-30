@@ -632,58 +632,58 @@ function showPhotoPreview(previewEl, dataUrl, filename) {
     : `<span>${escapeHtml(filename)}</span>`;
 }
 
+function isImageFile(file) {
+  return file.type.startsWith("image/") || /\.(jpe?g|png|webp|heic|gif|bmp)$/i.test(file.name);
+}
+
 document.querySelector("#rideUpload").addEventListener("change", async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-  els.rideResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>Sending to AI for analysis…</strong>`;
-  readUploadedText(file, async (text) => {
-    els.rideResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your ride data…</strong>`;
-    await applyRideEstimate(file, text);
-  });
-});
-
-document.querySelector("#ridePhotoUpload").addEventListener("change", async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
   const preview = document.querySelector("#ridePhotoPreview");
-  els.rideResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is analyzing your ride photo…</strong>`;
-  const reader = new FileReader();
-  reader.addEventListener("load", async () => {
-    showPhotoPreview(preview, reader.result, file.name);
-    await applyRideEstimate(file, "");
-  });
-  reader.addEventListener("error", async () => {
-    showPhotoPreview(preview, null, file.name);
-    await applyRideEstimate(file, "");
-  });
-  reader.readAsDataURL(file);
+  if (isImageFile(file)) {
+    els.rideResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your ride screenshot…</strong>`;
+    const reader = new FileReader();
+    reader.addEventListener("load", async () => {
+      showPhotoPreview(preview, reader.result, file.name);
+      await applyRideEstimate(file, "");
+    });
+    reader.addEventListener("error", async () => {
+      showPhotoPreview(preview, null, file.name);
+      await applyRideEstimate(file, "");
+    });
+    reader.readAsDataURL(file);
+  } else {
+    els.rideResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>Sending to AI for analysis…</strong>`;
+    readUploadedText(file, async (text) => {
+      els.rideResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your ride data…</strong>`;
+      await applyRideEstimate(file, text);
+    });
+  }
 });
 
 document.querySelector("#sleepUpload").addEventListener("change", async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-  els.sleepResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>Sending to AI for analysis…</strong>`;
-  readUploadedText(file, async (text) => {
-    els.sleepResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your sleep record…</strong>`;
-    await applySleepEstimate(file, text);
-  });
-});
-
-document.querySelector("#sleepPhotoUpload").addEventListener("change", async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
   const preview = document.querySelector("#sleepPhotoPreview");
-  els.sleepResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is analyzing your sleep photo…</strong>`;
-  const reader = new FileReader();
-  reader.addEventListener("load", async () => {
-    showPhotoPreview(preview, reader.result, file.name);
-    await applySleepEstimate(file, "");
-  });
-  reader.addEventListener("error", async () => {
-    showPhotoPreview(preview, null, file.name);
-    await applySleepEstimate(file, "");
-  });
-  reader.readAsDataURL(file);
+  if (isImageFile(file)) {
+    els.sleepResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your sleep screenshot…</strong>`;
+    const reader = new FileReader();
+    reader.addEventListener("load", async () => {
+      showPhotoPreview(preview, reader.result, file.name);
+      await applySleepEstimate(file, "");
+    });
+    reader.addEventListener("error", async () => {
+      showPhotoPreview(preview, null, file.name);
+      await applySleepEstimate(file, "");
+    });
+    reader.readAsDataURL(file);
+  } else {
+    els.sleepResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>Sending to AI for analysis…</strong>`;
+    readUploadedText(file, async (text) => {
+      els.sleepResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your sleep record…</strong>`;
+      await applySleepEstimate(file, text);
+    });
+  }
 });
 
 document.querySelector("#foodUpload").addEventListener("change", async (event) => {

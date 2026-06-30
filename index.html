@@ -595,31 +595,19 @@
             </div>
             <div class="upload-panel">
               <div>
-                <p class="eyebrow">Garmin ride import</p>
-                <h3>Upload ride file</h3>
-                <p>FIT, TCX, GPX, CSV, or JSON ride files update load, duration, and fuel targets.</p>
+                <p class="eyebrow">Ride analysis</p>
+                <h3>Upload your ride</h3>
+                <p>Upload a ride file <strong>(FIT, GPX, TCX, CSV)</strong> from your Garmin or cycling app — or pick a screenshot from your photo gallery showing your ride summary. AI reads both automatically.</p>
               </div>
               <label class="upload-button">
                 <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
                 Upload ride
-                <input id="rideUpload" type="file" accept=".fit,.tcx,.gpx,.csv,.json,application/json,text/csv">
+                <input id="rideUpload" type="file" accept=".fit,.tcx,.gpx,.csv,.json,image/*,.jpg,.jpeg,.png,.webp,.heic">
               </label>
             </div>
             <div class="ai-result" id="rideResult">
               <span>No ride uploaded</span>
               <strong>AI ride load estimate will appear here.</strong>
-            </div>
-            <div class="photo-panel">
-              <div>
-                <p class="eyebrow">Photo import</p>
-                <h3>Upload ride photo</h3>
-                <p>Snap your Garmin screen, bike computer, or ride summary. JPG, PNG, and all formats supported — open camera directly on mobile.</p>
-              </div>
-              <label class="upload-button">
-                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Take / upload photo
-                <input id="ridePhotoUpload" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic">
-              </label>
             </div>
             <div class="food-preview" id="ridePhotoPreview" aria-live="polite"></div>
             <div class="ftp-panel">
@@ -671,31 +659,19 @@
             </div>
             <div class="upload-panel">
               <div>
-                <p class="eyebrow">Garmin sleep import</p>
-                <h3>Upload sleep record</h3>
-                <p>CSV or JSON sleep exports update duration, quality, and recovery readiness.</p>
+                <p class="eyebrow">Sleep analysis</p>
+                <h3>Upload your sleep data</h3>
+                <p>Upload a sleep export <strong>(CSV, JSON)</strong> from Garmin Connect or your wearable app — or pick a screenshot from your photo gallery showing your sleep summary. AI reads both automatically.</p>
               </div>
               <label class="upload-button">
                 <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
-                Upload sleep
-                <input id="sleepUpload" type="file" accept=".csv,.json,.txt,application/json,text/csv,text/plain">
+                Upload sleep data
+                <input id="sleepUpload" type="file" accept=".csv,.json,.txt,image/*,.jpg,.jpeg,.png,.webp,.heic">
               </label>
             </div>
             <div class="ai-result" id="sleepResult">
               <span>No sleep record uploaded</span>
               <strong>AI sleep recovery estimate will appear here.</strong>
-            </div>
-            <div class="photo-panel">
-              <div>
-                <p class="eyebrow">Photo import</p>
-                <h3>Upload sleep photo</h3>
-                <p>Snap your smartwatch, sleep tracker app, or wearable screen. JPG, PNG, and all formats supported — open camera directly on mobile.</p>
-              </div>
-              <label class="upload-button">
-                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                Take / upload photo
-                <input id="sleepPhotoUpload" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic">
-              </label>
             </div>
             <div class="food-preview" id="sleepPhotoPreview" aria-live="polite"></div>
             <div class="protocol-list">
