@@ -599,6 +599,7 @@ function render() {
     .map(([tone, text]) => `<li class="${tone}">${text}</li>`)
     .join("");
 
+  updateCoachSidebar();
   persistProfile();
 }
 
@@ -816,6 +817,33 @@ function renderCoachMessages() {
   container.scrollTop = container.scrollHeight;
 }
 
+function clearCoachChat() {
+  coachMessages.length = 0;
+  renderCoachMessages();
+  const row = document.getElementById("coachSuggestedRow");
+  if (row) row.style.display = "";
+}
+
+function useSuggestion(btn) {
+  const input = document.getElementById("coachChatInput");
+  if (input) { input.value = btn.textContent; input.focus(); }
+  const row = document.getElementById("coachSuggestedRow");
+  if (row) row.style.display = "none";
+}
+
+function updateCoachSidebar() {
+  const ftp   = document.getElementById("coachCtxFtp");
+  const ready = document.getElementById("coachCtxReadiness");
+  const sleep = document.getElementById("coachCtxSleep");
+  const load  = document.getElementById("coachCtxLoad");
+  const sore  = document.getElementById("coachCtxSoreness");
+  if (ftp)   ftp.textContent   = `${state.ftp} W`;
+  if (ready) ready.textContent = String(calculateReadiness());
+  if (sleep) sleep.textContent = `${state.sleepHours.toFixed(1)}h`;
+  if (load)  load.textContent  = `${state.trainingLoad} TSS`;
+  if (sore)  sore.textContent  = `${state.soreness}/10`;
+}
+
 async function sendCoachMessage(e) {
   if (e) e.preventDefault();
   if (!currentUser) return;
@@ -825,6 +853,8 @@ async function sendCoachMessage(e) {
   input.value = "";
   const sendBtn = document.getElementById("coachChatSend");
   sendBtn.disabled = true;
+  const sugRow = document.getElementById("coachSuggestedRow");
+  if (sugRow) sugRow.style.display = "none";
   coachMessages.push({ role: "user", text: message });
   coachMessages.push({ role: "typing" });
   renderCoachMessages();

@@ -764,35 +764,69 @@
           </div>
 
           <div class="view" id="coach">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">AI Coaching</p>
-                <h2>Chat with your coach</h2>
-              </div>
-            </div>
-            <div class="coach-intro">
-              <div class="coach-intro-card">
-                <div class="coach-avatar">
-                  <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                </div>
-                <div>
-                  <h3>Your AI Cycling Coach</h3>
-                  <p>Ask anything about training, recovery, nutrition, or race preparation. Your coach is powered by a large language model with deep cycling performance knowledge.</p>
-                </div>
-              </div>
-              <div class="coach-topics">
-                <div class="coach-topic"><strong>FTP &amp; Intervals</strong><span>How to structure threshold work, sweet spot blocks, and VO2 sessions</span></div>
-                <div class="coach-topic"><strong>Recovery Protocol</strong><span>How many rest days, when to add load, and how to read fatigue signals</span></div>
-                <div class="coach-topic"><strong>Race Nutrition</strong><span>Carb loading, on-bike fuelling, and fluid strategy for events</span></div>
-                <div class="coach-topic"><strong>Periodisation</strong><span>Build, peak, and taper phases for your target event</span></div>
-              </div>
-              <div class="coach-chat" id="coachChat">
-                <div class="coach-chat-messages" id="coachChatMessages">
-                  <div class="coach-chat-empty">
-                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    <p>Ask your coach anything about training, recovery, or nutrition</p>
+            <div class="coach-shell">
+
+              <!-- Left: context sidebar -->
+              <div class="coach-sidebar">
+                <div class="coach-sidebar-header">
+                  <div class="coach-avatar-lg">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                  </div>
+                  <div>
+                    <div class="coach-sidebar-name">AI Cycling Coach</div>
+                    <div class="coach-sidebar-status"><span class="coach-online-dot"></span>Online · Powered by Ollama</div>
                   </div>
                 </div>
+                <p class="coach-sidebar-desc">Ask anything about training, recovery, nutrition, or race strategy. Your coach has full context of your current stats.</p>
+                <div class="coach-context-card">
+                  <div class="coach-context-title">Your current stats</div>
+                  <div class="coach-context-row"><span>FTP</span><strong id="coachCtxFtp">245 W</strong></div>
+                  <div class="coach-context-row"><span>Readiness</span><strong id="coachCtxReadiness">78</strong></div>
+                  <div class="coach-context-row"><span>Sleep</span><strong id="coachCtxSleep">7.6h</strong></div>
+                  <div class="coach-context-row"><span>Load (yesterday)</span><strong id="coachCtxLoad">72 TSS</strong></div>
+                  <div class="coach-context-row"><span>Soreness</span><strong id="coachCtxSoreness">3/10</strong></div>
+                </div>
+                <div class="coach-topics-stack">
+                  <div class="coach-topic-pill">FTP &amp; Intervals</div>
+                  <div class="coach-topic-pill">Recovery Protocol</div>
+                  <div class="coach-topic-pill">Race Nutrition</div>
+                  <div class="coach-topic-pill">Periodisation</div>
+                  <div class="coach-topic-pill">Sleep Optimisation</div>
+                  <div class="coach-topic-pill">Training Zones</div>
+                </div>
+              </div>
+
+              <!-- Right: chat area -->
+              <div class="coach-chat-pane">
+                <div class="coach-chat-topbar">
+                  <div class="coach-chat-topbar-left">
+                    <div class="coach-avatar-sm">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    </div>
+                    <div>
+                      <div class="coach-topbar-name">AI Cycling Coach</div>
+                      <div class="coach-topbar-sub"><span class="coach-online-dot"></span>Ready to help</div>
+                    </div>
+                  </div>
+                  <button class="coach-clear-btn" type="button" onclick="clearCoachChat()" title="Clear chat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                  </button>
+                </div>
+
+                <div class="coach-chat-messages" id="coachChatMessages">
+                  <div class="coach-chat-empty">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <p class="coach-empty-title">Ask your coach anything</p>
+                    <p class="coach-empty-sub">Try: "What should my sweet spot power be?" or "How many rest days do I need?"</p>
+                  </div>
+                </div>
+
+                <div class="coach-suggested-row" id="coachSuggestedRow">
+                  <button class="coach-suggested" type="button" onclick="useSuggestion(this)">Sweet spot watts for my FTP?</button>
+                  <button class="coach-suggested" type="button" onclick="useSuggestion(this)">How many rest days after yesterday?</button>
+                  <button class="coach-suggested" type="button" onclick="useSuggestion(this)">Pre-race nutrition plan?</button>
+                </div>
+
                 <form class="coach-chat-form" id="coachChatForm" onsubmit="sendCoachMessage(event)">
                   <input type="text" id="coachChatInput" class="coach-chat-input" placeholder="Ask your coach…" autocomplete="off">
                   <button type="submit" class="coach-chat-send" id="coachChatSend">
@@ -800,6 +834,7 @@
                   </button>
                 </form>
               </div>
+
             </div>
           </div>
         </div>
