@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CycleRestore</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     LANDING PAGE (shown until authenticated)
+════════════════════════════════════════════════════════════════ -->
+<div id="landing-page">
+
+  <!-- NAV -->
+  <nav class="lp-nav">
+    <div class="lp-nav-logo">
+      <div class="lp-nav-mark">
+        <svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm12 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8.2 9h4.1l2.9 4.2M10.5 5h2.7l-2.9 8.2M7.5 13h7.7M15 5h3"/></svg>
+      </div>
+      <span class="lp-nav-brand">CycleRestore</span>
+    </div>
+    <div class="lp-nav-center">
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#guide">Guide</a>
+    </div>
+    <div class="lp-nav-right">
+      <button class="lp-signin-btn" type="button" onclick="showAuthForm('login'); document.getElementById('auth-section').scrollIntoView({behavior:'smooth'})">Sign In</button>
+      <button class="lp-getstarted-btn" type="button" onclick="showAuthForm('register'); document.getElementById('auth-section').scrollIntoView({behavior:'smooth'})">Get Started →</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="lp-hero">
+    <div class="lp-hero-inner">
+      <div class="lp-hero-badge">AI-Powered Cycling Recovery</div>
+      <h1 class="lp-hero-h1">The AI That Thinks<br>About Your Recovery</h1>
+      <p class="lp-hero-sub">Sleep, nutrition, and rides — analyzed together to give you the right training plan every single day.</p>
+      <div class="lp-hero-ctas">
+        <button class="lp-btn-primary" type="button" onclick="showAuthForm('register'); document.getElementById('auth-section').scrollIntoView({behavior:'smooth'})">Get Started Free →</button>
+        <button class="lp-btn-ghost" type="button" onclick="showAuthForm('login'); document.getElementById('auth-section').scrollIntoView({behavior:'smooth'})">Sign In</button>
+      </div>
+      <div class="lp-hero-stats">
+        <div class="lp-hero-stat">🏆 Readiness Score</div>
+        <div class="lp-hero-stat">🌙 Sleep Tracking</div>
+        <div class="lp-hero-stat">🥗 Nutrition AI</div>
+        <div class="lp-hero-stat">🚴 Ride Analysis</div>
+        <div class="lp-hero-stat">🤖 AI Coach</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="lp-features" id="features">
+
+    <!-- Feature 1: Daily Readiness (text left, visual right) -->
+    <div class="lp-feature lp-feature--text-left">
+      <div class="lp-feature-text">
+        <div class="lp-feature-tag">Daily Readiness</div>
+        <h2 class="lp-feature-h2">Your body knows what day it is</h2>
+        <p class="lp-feature-desc">Every morning CycleRestore reads your sleep, training load, muscle soreness, and nutrition to build a single readiness score — one number that tells you whether to push hard, maintain, or recover.</p>
+        <ul class="lp-feature-bullets">
+          <li>Sleep duration &amp; quality analysis</li>
+          <li>Training stress from yesterday's ride</li>
+          <li>Muscle soreness impact on power output</li>
+          <li>Fuel and hydration readiness</li>
+        </ul>
+      </div>
+      <div class="lp-feature-visual">
+        <div class="lp-mock-card">
+          <div class="lp-mock-score-ring">
+            <div class="lp-mock-score-inner">
+              <span class="lp-mock-score-num">78</span>
+              <span class="lp-mock-score-lbl">Ready</span>
+            </div>
+          </div>
+          <div class="lp-mock-chips">
+            <div class="lp-mock-chip"><span class="lp-mock-chip-dot lp-dot-green"></span>Sleep 82%</div>
+            <div class="lp-mock-chip"><span class="lp-mock-chip-dot lp-dot-amber"></span>Load 72 TSS</div>
+            <div class="lp-mock-chip"><span class="lp-mock-chip-dot lp-dot-green"></span>Soreness 3/10</div>
+            <div class="lp-mock-chip"><span class="lp-mock-chip-dot lp-dot-green"></span>Fuel 84%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature 2: Ride Analysis (text right, visual left) -->
+    <div class="lp-feature lp-feature--text-right">
+      <div class="lp-feature-visual">
+        <div class="lp-mock-card">
+          <div class="lp-mock-label">7-day Training Load</div>
+          <div class="lp-mock-chart">
+            <div class="lp-mock-bar" style="--bh:42%"></div>
+            <div class="lp-mock-bar" style="--bh:58%"></div>
+            <div class="lp-mock-bar" style="--bh:34%"></div>
+            <div class="lp-mock-bar lp-mock-bar--highlight" style="--bh:72%"></div>
+            <div class="lp-mock-bar" style="--bh:49%"></div>
+            <div class="lp-mock-bar lp-mock-bar--peak" style="--bh:84%"></div>
+            <div class="lp-mock-bar lp-mock-bar--today" style="--bh:54%"></div>
+          </div>
+          <div class="lp-mock-stats-row">
+            <div class="lp-mock-stat-item"><strong>52 km</strong><span>Distance</span></div>
+            <div class="lp-mock-stat-item"><strong>114 min</strong><span>Duration</span></div>
+            <div class="lp-mock-stat-item"><strong>88 TSS</strong><span>Load</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="lp-feature-text">
+        <div class="lp-feature-tag">Ride Analysis</div>
+        <h2 class="lp-feature-h2">Upload your ride. Get the full picture.</h2>
+        <p class="lp-feature-desc">Drop a Garmin FIT file, GPX, or CSV — or snap a photo of your bike computer screen. AI extracts distance, duration, TSS, and FTP estimate, then rebuilds your session recommendation.</p>
+        <ul class="lp-feature-bullets">
+          <li>FIT, TCX, GPX, CSV &amp; JSON support</li>
+          <li>FTP estimation from power data</li>
+          <li>Training zone calculation (sweet spot, threshold, VO2)</li>
+          <li>Photo upload from phone camera</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Feature 3: Sleep Optimization (text left, visual right) -->
+    <div class="lp-feature lp-feature--text-left">
+      <div class="lp-feature-text">
+        <div class="lp-feature-tag">Sleep Optimization</div>
+        <h2 class="lp-feature-h2">Sleep is the workout you can't skip</h2>
+        <p class="lp-feature-desc">Upload Garmin or wearable sleep exports — or photograph your smartwatch screen. AI reads deep sleep, REM, and total hours to recalibrate tonight's bedtime target.</p>
+        <ul class="lp-feature-bullets">
+          <li>CSV &amp; JSON sleep import</li>
+          <li>Photo from smartwatch screen</li>
+          <li>Bedtime target adjusted to training load</li>
+          <li>Deep sleep &amp; REM stage breakdown</li>
+        </ul>
+      </div>
+      <div class="lp-feature-visual">
+        <div class="lp-mock-card">
+          <div class="lp-mock-sleep-header">
+            <strong>7h 24m</strong>
+            <span class="lp-mock-quality-pill">82% quality</span>
+          </div>
+          <div class="lp-mock-sleep-stages">
+            <div class="lp-mock-stage">
+              <span class="lp-mock-stage-label">Light</span>
+              <div class="lp-mock-stage-bar"><div class="lp-mock-stage-fill lp-stage-light" style="--sw:65%"></div></div>
+              <span class="lp-mock-stage-time">4h 49m</span>
+            </div>
+            <div class="lp-mock-stage">
+              <span class="lp-mock-stage-label">Deep</span>
+              <div class="lp-mock-stage-bar"><div class="lp-mock-stage-fill lp-stage-deep" style="--sw:28%"></div></div>
+              <span class="lp-mock-stage-time">2h 04m</span>
+            </div>
+            <div class="lp-mock-stage">
+              <span class="lp-mock-stage-label">REM</span>
+              <div class="lp-mock-stage-bar"><div class="lp-mock-stage-fill lp-stage-rem" style="--sw:44%"></div></div>
+              <span class="lp-mock-stage-time">3h 16m</span>
+            </div>
+          </div>
+          <div class="lp-mock-bedtime">
+            <span>Target bedtime</span>
+            <strong>9:48 PM</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature 4: Nutrition AI (text right, visual left) -->
+    <div class="lp-feature lp-feature--text-right">
+      <div class="lp-feature-visual">
+        <div class="lp-mock-card">
+          <div class="lp-mock-ai-pill">AI Analysed</div>
+          <div class="lp-mock-nutrition-circles">
+            <div class="lp-mock-nutr-circle lp-nutr-carb">
+              <strong>72g/hr</strong>
+              <span>Carbs</span>
+            </div>
+            <div class="lp-mock-nutr-circle lp-nutr-prot">
+              <strong>32g</strong>
+              <span>Protein</span>
+            </div>
+            <div class="lp-mock-nutr-circle lp-nutr-fluid">
+              <strong>750ml/hr</strong>
+              <span>Fluids</span>
+            </div>
+          </div>
+          <div class="lp-mock-meal-label">Breakfast analysed · AI photo scan</div>
+        </div>
+      </div>
+      <div class="lp-feature-text">
+        <div class="lp-feature-tag">Nutrition AI</div>
+        <h2 class="lp-feature-h2">Fuel the right way for every ride</h2>
+        <p class="lp-feature-desc">Snap your meal or type what you ate. AI estimates carbs, protein, and fluids for your next ride — adjusted to today's training stress and your FTP goal.</p>
+        <ul class="lp-feature-bullets">
+          <li>Breakfast, Lunch, Dinner &amp; Other meal types</li>
+          <li>Photo scan (JPG, PNG, HEIC)</li>
+          <li>Manual text entry with AI analysis</li>
+          <li>Carb &amp; protein targets per ride hour</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Feature 5: AI Coach (text left, visual right) -->
+    <div class="lp-feature lp-feature--text-left">
+      <div class="lp-feature-text">
+        <div class="lp-feature-tag">AI Coach</div>
+        <h2 class="lp-feature-h2">Ask your coach anything, anytime</h2>
+        <p class="lp-feature-desc">Have a question about your interval targets, recovery protocol, or nutrition strategy before a big event? Chat with an AI coach — powered by a large language model built for cycling performance.</p>
+        <ul class="lp-feature-bullets">
+          <li>Ask about FTP intervals, zones &amp; periodisation</li>
+          <li>Get personalised recovery advice</li>
+          <li>Nutrition strategy for long rides</li>
+          <li>Available 24/7 inside the app</li>
+        </ul>
+      </div>
+      <div class="lp-feature-visual">
+        <div class="lp-mock-card lp-mock-chat-card">
+          <div class="lp-mock-chat-header">
+            <div class="lp-mock-chat-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+            <span>AI Cycling Coach</span>
+            <span class="lp-mock-online-dot"></span>
+          </div>
+          <div class="lp-mock-chat-messages">
+            <div class="lp-mock-bubble lp-bubble-user">What should my sweet spot power be at 245W FTP?</div>
+            <div class="lp-mock-bubble lp-bubble-coach">At 245W FTP, your sweet spot zone is 216–230W — aim for 20–40 min blocks at this effort.</div>
+            <div class="lp-mock-bubble lp-bubble-user">How many rest days after an 88 TSS ride?</div>
+            <div class="lp-mock-bubble lp-bubble-coach">One recovery day is ideal. Your readiness score will guide you — if it's below 65 tomorrow, keep it Zone 1 only.</div>
+          </div>
+          <div class="lp-mock-chat-input">
+            <span>Ask your coach…</span>
+            <div class="lp-mock-send-btn">→</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="lp-how-section" id="how-it-works">
+    <div class="lp-section-header">
+      <h2 class="lp-section-h2">How CycleRestore Works</h2>
+      <p class="lp-section-sub">From sign-up to your first personalized training plan in under 3 minutes.</p>
+    </div>
+    <div class="lp-steps-row">
+      <div class="lp-step-card">
+        <div class="lp-step-num">1</div>
+        <h3>Create Account</h3>
+        <p>Sign up with email. Your data is private and encrypted.</p>
+      </div>
+      <div class="lp-step-arrow-dark">→</div>
+      <div class="lp-step-card">
+        <div class="lp-step-num">2</div>
+        <h3>Log Recovery Inputs</h3>
+        <p>Set sleep hours, quality, training load, and soreness on the Today tab.</p>
+      </div>
+      <div class="lp-step-arrow-dark">→</div>
+      <div class="lp-step-card">
+        <div class="lp-step-num">3</div>
+        <h3>Upload Your Ride</h3>
+        <p>Import a FIT/GPX file or photo your Garmin screen. AI reads the data.</p>
+      </div>
+      <div class="lp-step-arrow-dark">→</div>
+      <div class="lp-step-card">
+        <div class="lp-step-num">4</div>
+        <h3>Log Your Meals</h3>
+        <p>Pick a meal type and snap a photo or type what you ate.</p>
+      </div>
+      <div class="lp-step-arrow-dark">→</div>
+      <div class="lp-step-card">
+        <div class="lp-step-num">5</div>
+        <h3>Get Your Plan</h3>
+        <p>Your readiness score and recommended session update in real time.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- GUIDE -->
+  <section class="lp-guide-section" id="guide">
+    <div class="lp-section-header">
+      <h2 class="lp-section-h2">Precise Step-by-Step Guide</h2>
+      <p class="lp-section-sub">Everything you need to know to get the most out of CycleRestore.</p>
+    </div>
+    <div class="lp-guide-grid">
+      <div class="lp-guide-card">
+        <h3>Setting Up Your FTP</h3>
+        <p>Go to Today tab. Drag the Current FTP slider to match your most recent 20-min power × 0.95. Set Target FTP 15–30 W above current. This unlocks accurate Sweet Spot (88–94% FTP), Threshold (95–105% FTP), and VO2 Max (106–120% FTP) zones.</p>
+      </div>
+      <div class="lp-guide-card">
+        <h3>Logging Sleep Correctly</h3>
+        <p>Each morning before riding, go to the Sleep tab. Enter last night's hours and rate your sleep quality (1–100). Upload a Garmin CSV/JSON export or photograph your smartwatch summary screen. The bedtime recommendation auto-adjusts to tonight's target based on today's planned training.</p>
+      </div>
+      <div class="lp-guide-card">
+        <h3>Uploading a Ride File</h3>
+        <p>After completing a ride, go to the Rides tab. Upload the .FIT, .TCX, .GPX, or .CSV file exported from Garmin Connect, Strava, or your head unit. AI extracts TSS, average power, and FTP estimate. Alternatively tap 'Take / upload photo' and snap your Garmin screen — the AI reads the numbers from the image.</p>
+      </div>
+      <div class="lp-guide-card">
+        <h3>Reading Your Readiness Score</h3>
+        <p>Score 82–100: Full training day — push threshold or FTP intervals. Score 65–81: Sweet spot or endurance ride, avoid spikes. Score 48–64: Recovery spin only, Zone 1–2 max. Score below 48: Rest day — sleep, food, and no structured work. The score recalculates instantly as you adjust inputs.</p>
+      </div>
+      <div class="lp-guide-card">
+        <h3>Logging Nutrition</h3>
+        <p>Go to the Nutrition tab. Select Breakfast, Lunch, Dinner, or Other. Either upload a food photo or tap 'Type manually' and describe your meal in plain English (e.g. '2 eggs, toast with peanut butter, banana, orange juice'). AI returns carbs-per-hour, protein, and fluid targets specific to your training load.</p>
+      </div>
+      <div class="lp-guide-card">
+        <h3>Chatting with Your Coach</h3>
+        <p>Go to the Coach tab in the sidebar. Click 'Open AI Coach' — this opens your personal AI cycling coach in a new tab. Ask anything: interval structure, tapering strategy, nutrition for a 4-hour sportive, or why your FTP isn't climbing. The coach has full context about cycling performance science.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTH SECTION -->
+  <section class="lp-auth-section" id="auth-section">
+    <div class="lp-auth-inner">
+      <div class="lp-auth-pitch">
+        <h2>Start training smarter today</h2>
+        <ul class="lp-auth-benefits">
+          <li>Daily readiness score from your real recovery signals</li>
+          <li>AI ride analysis from Garmin FIT, GPX, CSV files</li>
+          <li>Nutrition plan with carb, protein, and fluid targets</li>
+          <li>Personal AI coach available 24/7 inside the app</li>
+        </ul>
+      </div>
+      <div class="lp-auth-forms">
+        <div class="lp-form-card">
+
+          <form id="register-form" onsubmit="submitRegister(event)">
+            <div class="lp-form-title">Start for free today</div>
+            <div class="lp-form-sub">No credit card required</div>
+            <div id="register-error" class="auth-error" style="display:none"></div>
+            <label class="auth-label">Email address
+              <input id="reg-email" type="email" autocomplete="email" required placeholder="you@example.com">
+            </label>
+            <label class="auth-label">Password <span class="auth-hint">(min 6 characters)</span>
+              <div class="pw-wrap">
+                <input id="reg-password" type="password" autocomplete="new-password" required placeholder="••••••••" minlength="6">
+                <button type="button" class="pw-toggle" onclick="togglePw('reg-password', this)" aria-label="Show password">
+                  <svg class="pw-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="pw-eye-off" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                </button>
+              </div>
+            </label>
+            <label class="auth-label">Confirm password
+              <div class="pw-wrap">
+                <input id="reg-confirm" type="password" autocomplete="new-password" required placeholder="••••••••">
+                <button type="button" class="pw-toggle" onclick="togglePw('reg-confirm', this)" aria-label="Show password">
+                  <svg class="pw-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="pw-eye-off" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                </button>
+              </div>
+            </label>
+            <button type="submit" id="register-btn" class="lp-cta-btn">Create free account</button>
+            <div class="auth-switch">Already have an account? <button type="button" class="auth-link" onclick="showAuthForm('login')">Sign in</button></div>
+          </form>
+
+          <form id="login-form" style="display:none" onsubmit="submitLogin(event)">
+            <div class="lp-form-title">Welcome back</div>
+            <div class="lp-form-sub">Sign in to your account</div>
+            <div id="login-error" class="auth-error" style="display:none"></div>
+            <label class="auth-label">Email address
+              <input id="login-email" type="email" autocomplete="email" required placeholder="you@example.com">
+            </label>
+            <label class="auth-label">Password
+              <div class="pw-wrap">
+                <input id="login-password" type="password" autocomplete="current-password" required placeholder="••••••••">
+                <button type="button" class="pw-toggle" onclick="togglePw('login-password', this)" aria-label="Show password">
+                  <svg class="pw-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="pw-eye-off" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                </button>
+              </div>
+            </label>
+            <button type="submit" id="login-btn" class="lp-cta-btn">Sign in</button>
+            <div class="auth-switch"><button type="button" class="auth-link" onclick="showAuthForm('forgot')">Forgot password?</button></div>
+            <div class="auth-switch">No account? <button type="button" class="auth-link" onclick="showAuthForm('register')">Sign up for free</button></div>
+          </form>
+
+          <form id="forgot-form" style="display:none" onsubmit="submitForgotPassword(event)">
+            <div class="lp-form-title">Reset your password</div>
+            <div class="lp-form-sub">Enter your email and we'll generate a reset link</div>
+            <div id="forgot-error" class="auth-error" style="display:none"></div>
+            <div id="forgot-success" class="auth-success" style="display:none"></div>
+            <label class="auth-label">Email address
+              <input id="forgot-email" type="email" autocomplete="email" required placeholder="you@example.com">
+            </label>
+            <button type="submit" id="forgot-btn" class="lp-cta-btn">Send reset link</button>
+            <div class="auth-switch">Remember your password? <button type="button" class="auth-link" onclick="showAuthForm('login')">Sign in</button></div>
+          </form>
+
+          <form id="reset-form" style="display:none" onsubmit="submitResetPassword(event)">
+            <div class="lp-form-title">Set new password</div>
+            <div class="lp-form-sub">Enter your new password below</div>
+            <div id="reset-error" class="auth-error" style="display:none"></div>
+            <div id="reset-success" class="auth-success" style="display:none"></div>
+            <label class="auth-label">New password <span class="auth-hint">(min 6 characters)</span>
+              <div class="pw-wrap">
+                <input id="reset-password" type="password" autocomplete="new-password" required placeholder="••••••••" minlength="6">
+                <button type="button" class="pw-toggle" onclick="togglePw('reset-password', this)" aria-label="Show password">
+                  <svg class="pw-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="pw-eye-off" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                </button>
+              </div>
+            </label>
+            <label class="auth-label">Confirm new password
+              <div class="pw-wrap">
+                <input id="reset-confirm" type="password" autocomplete="new-password" required placeholder="••••••••">
+                <button type="button" class="pw-toggle" onclick="togglePw('reset-confirm', this)" aria-label="Show password">
+                  <svg class="pw-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg class="pw-eye-off" viewBox="0 0 24 24" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24M1 1l22 22"/></svg>
+                </button>
+              </div>
+            </label>
+            <button type="submit" id="reset-btn" class="lp-cta-btn">Set new password</button>
+            <div class="auth-switch">Back to <button type="button" class="auth-link" onclick="showAuthForm('login')">Sign in</button></div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="lp-dark-footer">
+    <div class="lp-dark-footer-inner">
+      <div class="lp-dark-footer-logo">
+        <div class="lp-nav-mark">
+          <svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm12 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8.2 9h4.1l2.9 4.2M10.5 5h2.7l-2.9 8.2M7.5 13h7.7M15 5h3"/></svg>
+        </div>
+        <span>CycleRestore</span>
+      </div>
+      <div class="lp-dark-footer-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#guide">Guide</a>
+      </div>
+      <div class="lp-dark-footer-tag">Free to use · No credit card</div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     APP (hidden until authenticated)
+════════════════════════════════════════════════════════════════ -->
+<div id="app" style="display:none">
+
+  <nav class="cr-nav cr-nav-app">
+    <div class="cr-nav-logo">
+      <div class="cr-nav-mark">
+        <svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm12 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8.2 9h4.1l2.9 4.2M10.5 5h2.7l-2.9 8.2M7.5 13h7.7M15 5h3"/></svg>
+      </div>
+      CycleRestore
+    </div>
+    <div class="cr-nav-right">
+      <span id="nav-user" class="nav-user"></span>
+      <button class="nav-logout" type="button" onclick="doSignOut()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Primary">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm12 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8.2 9h4.1l2.9 4.2M10.5 5h2.7l-2.9 8.2M7.5 13h7.7M15 5h3" /></svg>
+        </div>
+        <div>
+          <strong>CycleRestore</strong>
+          <span>Train. Sleep. Fuel.</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active" data-view="today" type="button">
+          <svg viewBox="0 0 24 24"><path d="M4 12h4l2-7 4 14 2-7h4" /></svg>
+          Today
+        </button>
+        <button class="nav-item" data-view="rides" type="button">
+          <svg viewBox="0 0 24 24"><path d="M4 18 8 6l4 12 4-10 4 10" /></svg>
+          Rides
+        </button>
+        <button class="nav-item" data-view="sleep" type="button">
+          <svg viewBox="0 0 24 24"><path d="M20 15.5A7.5 7.5 0 0 1 8.5 4a8 8 0 1 0 11.5 11.5Z" /></svg>
+          Sleep
+        </button>
+        <button class="nav-item" data-view="nutrition" type="button">
+          <svg viewBox="0 0 24 24"><path d="M12 3v18M7 7c0 3 2 5 5 5s5-2 5-5M8 17h8" /></svg>
+          Nutrition
+        </button>
+        <button class="nav-item" data-view="coach" type="button">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Coach
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span>Weekly load</span>
+        <strong id="weeklyLoad">348 TSS</strong>
+        <div class="load-track"><span id="loadBar"></span></div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="hero">
+        <img src="./assets/cycling-recovery-banner.png" alt="Cyclist training on a quiet morning road">
+        <div class="hero-overlay">
+          <p class="eyebrow">Monday readiness</p>
+          <h1>CycleRestore</h1>
+          <p>Plan today's ride from your legs, sleep, fuel, and recovery instead of mileage alone.</p>
+        </div>
+      </section>
+
+      <section class="top-grid" aria-label="Readiness summary">
+        <div class="score-panel">
+          <div class="score-ring" style="--score: 78">
+            <span id="readinessScore">78</span>
+            <small>Ready</small>
+          </div>
+          <div>
+            <p class="eyebrow">Recommended session</p>
+            <h2 id="sessionTitle">Endurance ride</h2>
+            <p id="sessionCopy">Keep it aerobic. Your recovery signals support steady work without chasing peak power.</p>
+          </div>
+        </div>
+
+        <div class="metric">
+          <span>Sleep</span>
+          <strong id="sleepMetric">7h 35m</strong>
+          <small id="sleepStatus">Strong recovery window</small>
+        </div>
+        <div class="metric">
+          <span>Fuel</span>
+          <strong id="fuelMetric">84%</strong>
+          <small id="fuelStatus">Carbs and protein on track</small>
+        </div>
+        <div class="metric">
+          <span>Hydration</span>
+          <strong id="hydrationMetric">2.8 L</strong>
+          <small id="hydrationStatus">Finish one more bottle</small>
+        </div>
+        <div class="metric">
+          <span>FTP</span>
+          <strong id="ftpMetric">245 W</strong>
+          <small id="ftpStatus">Builder phase</small>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <div class="workspace">
+          <div class="view active" id="today">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Daily inputs</p>
+                <h2>Recovery check-in</h2>
+              </div>
+              <button id="optimizeBtn" class="primary-action" type="button">
+                <svg viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8" /></svg>
+                Optimize
+              </button>
+            </div>
+
+            <div class="control-grid">
+              <label class="control">
+                <span>Sleep duration <strong id="sleepValue">7.6h</strong></span>
+                <input id="sleepHours" type="range" min="4" max="10" value="7.6" step="0.1">
+              </label>
+              <label class="control">
+                <span>Sleep quality <strong id="qualityValue">82%</strong></span>
+                <input id="sleepQuality" type="range" min="35" max="100" value="82">
+              </label>
+              <label class="control">
+                <span>Yesterday's load <strong id="loadValue">72 TSS</strong></span>
+                <input id="trainingLoad" type="range" min="10" max="170" value="72">
+              </label>
+              <label class="control">
+                <span>Muscle soreness <strong id="sorenessValue">3/10</strong></span>
+                <input id="soreness" type="range" min="0" max="10" value="3">
+              </label>
+              <label class="control">
+                <span>Current FTP <strong id="ftpValue">245 W</strong></span>
+                <input id="ftp" type="range" min="120" max="430" value="245" step="5">
+              </label>
+              <label class="control">
+                <span>Target FTP <strong id="targetFtpValue">270 W</strong></span>
+                <input id="targetFtp" type="range" min="140" max="480" value="270" step="5">
+              </label>
+            </div>
+          </div>
+
+          <div class="view" id="rides">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Ride builder</p>
+                <h2>Today's cycling plan</h2>
+              </div>
+            </div>
+            <div class="upload-panel">
+              <div>
+                <p class="eyebrow">Garmin ride import</p>
+                <h3>Upload ride file</h3>
+                <p>FIT, TCX, GPX, CSV, or JSON ride files update load, duration, and fuel targets.</p>
+              </div>
+              <label class="upload-button">
+                <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+                Upload ride
+                <input id="rideUpload" type="file" accept=".fit,.tcx,.gpx,.csv,.json,application/json,text/csv">
+              </label>
+            </div>
+            <div class="ai-result" id="rideResult">
+              <span>No ride uploaded</span>
+              <strong>AI ride load estimate will appear here.</strong>
+            </div>
+            <div class="photo-panel">
+              <div>
+                <p class="eyebrow">Photo import</p>
+                <h3>Upload ride photo</h3>
+                <p>Snap your Garmin screen, bike computer, or ride summary. JPG, PNG, and all formats supported — open camera directly on mobile.</p>
+              </div>
+              <label class="upload-button">
+                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Take / upload photo
+                <input id="ridePhotoUpload" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic">
+              </label>
+            </div>
+            <div class="food-preview" id="ridePhotoPreview" aria-live="polite"></div>
+            <div class="ftp-panel">
+              <div class="ftp-score">
+                <span>FTP level</span>
+                <strong id="ftpLevel">Developing</strong>
+                <small id="ftpGap">25 W to target</small>
+              </div>
+              <div class="ftp-zones">
+                <div><span>Sweet spot</span><strong id="sweetSpotZone">216-230 W</strong></div>
+                <div><span>Threshold</span><strong id="thresholdZone">233-257 W</strong></div>
+                <div><span>VO2 max</span><strong id="vo2Zone">260-294 W</strong></div>
+              </div>
+            </div>
+            <div class="ride-plan">
+              <div>
+                <span>Warm up</span>
+                <strong>12 min</strong>
+                <small>Zone 1-2 cadence build</small>
+              </div>
+              <div>
+                <span>Main set</span>
+                <strong id="mainSet">65 min</strong>
+                <small id="mainSetCopy">Conversational endurance, no surges</small>
+              </div>
+              <div>
+                <span>Cool down</span>
+                <strong>10 min</strong>
+                <small>Easy spin and mobility</small>
+              </div>
+            </div>
+            <div class="chart" aria-label="Seven day training load chart">
+              <span style="--h:42%"></span>
+              <span style="--h:58%"></span>
+              <span style="--h:34%"></span>
+              <span style="--h:72%"></span>
+              <span style="--h:49%"></span>
+              <span style="--h:84%"></span>
+              <span id="todayBar" style="--h:54%"></span>
+            </div>
+          </div>
+
+          <div class="view" id="sleep">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Sleep protocol</p>
+                <h2>Tonight's recovery target</h2>
+              </div>
+            </div>
+            <div class="upload-panel">
+              <div>
+                <p class="eyebrow">Garmin sleep import</p>
+                <h3>Upload sleep record</h3>
+                <p>CSV or JSON sleep exports update duration, quality, and recovery readiness.</p>
+              </div>
+              <label class="upload-button">
+                <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+                Upload sleep
+                <input id="sleepUpload" type="file" accept=".csv,.json,.txt,application/json,text/csv,text/plain">
+              </label>
+            </div>
+            <div class="ai-result" id="sleepResult">
+              <span>No sleep record uploaded</span>
+              <strong>AI sleep recovery estimate will appear here.</strong>
+            </div>
+            <div class="photo-panel">
+              <div>
+                <p class="eyebrow">Photo import</p>
+                <h3>Upload sleep photo</h3>
+                <p>Snap your smartwatch, sleep tracker app, or wearable screen. JPG, PNG, and all formats supported — open camera directly on mobile.</p>
+              </div>
+              <label class="upload-button">
+                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Take / upload photo
+                <input id="sleepPhotoUpload" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic">
+              </label>
+            </div>
+            <div class="food-preview" id="sleepPhotoPreview" aria-live="polite"></div>
+            <div class="protocol-list">
+              <label><input id="screenCutoff" type="checkbox" checked> Screen cutoff 45 minutes before bed</label>
+              <label><input id="coolRoom" type="checkbox" checked> Cool room and dark wake window</label>
+              <label><input id="caffeine" type="checkbox"> No caffeine after 2:00 PM</label>
+            </div>
+            <div class="sleep-window">
+              <span>Target bedtime</span>
+              <strong id="bedtime">9:48 PM</strong>
+              <small id="sleepNeed">Aim for 8h 10m after today's load</small>
+            </div>
+          </div>
+
+          <div class="view" id="nutrition">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Fuel plan</p>
+                <h2>Nutrition for the next ride</h2>
+              </div>
+            </div>
+
+            <!-- Meal type selector -->
+            <div class="meal-type-bar">
+              <span class="meal-type-label">Meal type</span>
+              <div class="meal-type-pills" id="mealTypePills">
+                <button class="meal-pill active" data-meal="breakfast">Breakfast</button>
+                <button class="meal-pill" data-meal="lunch">Lunch</button>
+                <button class="meal-pill" data-meal="dinner">Dinner</button>
+                <button class="meal-pill" data-meal="other">Other</button>
+              </div>
+            </div>
+
+            <!-- Input method tabs -->
+            <div class="nutrition-tabs">
+              <button class="nutrition-tab active" id="tab-photo" onclick="switchNutritionTab('photo')">
+                <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Upload photo
+              </button>
+              <button class="nutrition-tab" id="tab-manual" onclick="switchNutritionTab('manual')">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Type manually
+              </button>
+            </div>
+
+            <!-- Photo panel -->
+            <div id="nutrition-photo-panel">
+              <div class="photo-panel">
+                <div>
+                  <p class="eyebrow">AI meal scan</p>
+                  <h3>Upload food photo</h3>
+                  <p>Snap your meal or plate. AI estimates carbs, protein, and fluids. JPG, PNG supported — opens camera directly on mobile.</p>
+                </div>
+                <label class="upload-button">
+                  <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                  Take / upload photo
+                  <input id="foodUpload" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.heic">
+                </label>
+              </div>
+              <div class="food-preview" id="foodPreview" aria-live="polite"></div>
+            </div>
+
+            <!-- Manual entry panel -->
+            <div id="nutrition-manual-panel" style="display:none">
+              <div class="manual-food-entry">
+                <label class="manual-food-label" for="foodTextInput">Describe your meal</label>
+                <textarea id="foodTextInput" placeholder="e.g. 2 scrambled eggs, 2 slices of toast with peanut butter, orange juice, one banana…" rows="4"></textarea>
+                <button class="analyze-food-btn" id="analyzeFoodTextBtn" onclick="analyzeFoodText()">
+                  <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg>
+                  Analyse with AI
+                </button>
+              </div>
+            </div>
+
+            <div class="ai-result" id="foodResult">
+              <span>No meal logged yet</span>
+              <strong>AI nutrition estimate will appear here.</strong>
+            </div>
+            <div class="meal-grid">
+              <label><input class="meal" type="checkbox" checked> Carbs loaded</label>
+              <label><input class="meal" type="checkbox" checked> Protein within 45 min</label>
+              <label><input class="meal" type="checkbox"> Electrolytes packed</label>
+              <label><input class="meal" type="checkbox" checked> Recovery snack ready</label>
+            </div>
+            <div class="fuel-targets">
+              <div><span>Carbs</span><strong id="carbTarget">72g/hr</strong></div>
+              <div><span>Protein</span><strong id="proteinTarget">32g</strong></div>
+              <div><span>Fluids</span><strong id="fluidTarget">750ml/hr</strong></div>
+            </div>
+          </div>
+
+          <div class="view" id="coach">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">AI Coaching</p>
+                <h2>Chat with your coach</h2>
+              </div>
+            </div>
+            <div class="coach-intro">
+              <div class="coach-intro-card">
+                <div class="coach-avatar">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                </div>
+                <div>
+                  <h3>Your AI Cycling Coach</h3>
+                  <p>Ask anything about training, recovery, nutrition, or race preparation. Your coach is powered by a large language model with deep cycling performance knowledge.</p>
+                </div>
+              </div>
+              <div class="coach-topics">
+                <div class="coach-topic"><strong>FTP &amp; Intervals</strong><span>How to structure threshold work, sweet spot blocks, and VO2 sessions</span></div>
+                <div class="coach-topic"><strong>Recovery Protocol</strong><span>How many rest days, when to add load, and how to read fatigue signals</span></div>
+                <div class="coach-topic"><strong>Race Nutrition</strong><span>Carb loading, on-bike fuelling, and fluid strategy for events</span></div>
+                <div class="coach-topic"><strong>Periodisation</strong><span>Build, peak, and taper phases for your target event</span></div>
+              </div>
+              <a href="https://ai.bejie.it.com" target="_blank" rel="noopener" class="coach-open-btn">
+                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                Open AI Coach →
+              </a>
+              <p class="coach-hint">Opens in a new tab — ask about your training, recovery, or race strategy</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="coach-panel">
+          <div class="section-head compact">
+            <div>
+              <p class="eyebrow">Coach notes</p>
+              <h2>What to watch</h2>
+            </div>
+          </div>
+          <ul id="coachNotes"></ul>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+</div><!-- /#app -->
+
+    <script src="./app.js"></script>
+  </body>
+</html>
