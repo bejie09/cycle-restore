@@ -340,9 +340,35 @@ h2 {
 }
 
 .upload-panel,
+.photo-panel,
 .ai-result,
 .food-preview {
   margin-bottom: 16px;
+}
+
+.photo-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px dashed #a8d4be;
+  border-radius: 8px;
+  background: #f4fbf7;
+}
+
+.photo-panel h3 {
+  margin: 4px 0 6px;
+  font-size: 1.05rem;
+  letter-spacing: 0;
+}
+
+.photo-panel p {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .upload-panel {
@@ -1315,6 +1341,7 @@ input[type="checkbox"] {
   .fuel-targets,
   .sleep-window,
   .upload-panel,
+  .photo-panel,
   .food-preview {
     align-items: stretch;
     flex-direction: column;

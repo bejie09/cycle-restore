@@ -704,10 +704,12 @@ document.querySelector("#foodUpload").addEventListener("change", async (event) =
 
 document.querySelectorAll(".nav-item").forEach((button) => {
   button.addEventListener("click", () => {
+    const target = document.querySelector(`#${button.dataset.view}`);
+    if (!target) return;
     document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
     document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
     button.classList.add("active");
-    document.querySelector(`#${button.dataset.view}`).classList.add("active");
+    target.classList.add("active");
   });
 });
 
