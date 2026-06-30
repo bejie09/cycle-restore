@@ -316,6 +316,13 @@ h2 {
   padding: 18px;
 }
 
+.workspace:has(#coach.active) {
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
 .section-head {
   justify-content: space-between;
   gap: 14px;
@@ -2275,12 +2282,19 @@ input[type="checkbox"] {
 /* ── Coach view (app shell) ───────────────────────────────────── */
 /* ── Coach shell (two-column layout) ──────────────────────────── */
 
+.view.active#coach {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .coach-shell {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 0;
-  height: calc(100vh - 220px);
-  min-height: 540px;
+  flex: 1;
+  min-height: 600px;
+  height: calc(100vh - 200px);
   border: 1px solid var(--line);
   border-radius: 14px;
   overflow: hidden;

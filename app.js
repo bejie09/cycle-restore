@@ -844,8 +844,7 @@ function updateCoachSidebar() {
   if (sore)  sore.textContent  = `${state.soreness}/10`;
 }
 
-async function sendCoachMessage(e) {
-  if (e) e.preventDefault();
+async function sendCoachMessage() {
   if (!currentUser) return;
   const input = document.getElementById("coachChatInput");
   const message = input.value.trim();
@@ -900,5 +899,23 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("auth-section").scrollIntoView({ behavior: "smooth" });
   } else {
     checkSession();
+  }
+
+  const coachForm = document.getElementById("coachChatForm");
+  if (coachForm) {
+    coachForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      sendCoachMessage(null);
+    });
+  }
+
+  const coachInput = document.getElementById("coachChatInput");
+  if (coachInput) {
+    coachInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendCoachMessage(null);
+      }
+    });
   }
 });
