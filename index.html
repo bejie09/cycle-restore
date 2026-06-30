@@ -786,11 +786,20 @@
                 <div class="coach-topic"><strong>Race Nutrition</strong><span>Carb loading, on-bike fuelling, and fluid strategy for events</span></div>
                 <div class="coach-topic"><strong>Periodisation</strong><span>Build, peak, and taper phases for your target event</span></div>
               </div>
-              <a href="https://ai.bejie.it.com" target="_blank" rel="noopener" class="coach-open-btn">
-                <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Open AI Coach →
-              </a>
-              <p class="coach-hint">Opens in a new tab — ask about your training, recovery, or race strategy</p>
+              <div class="coach-chat" id="coachChat">
+                <div class="coach-chat-messages" id="coachChatMessages">
+                  <div class="coach-chat-empty">
+                    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <p>Ask your coach anything about training, recovery, or nutrition</p>
+                  </div>
+                </div>
+                <form class="coach-chat-form" id="coachChatForm" onsubmit="sendCoachMessage(event)">
+                  <input type="text" id="coachChatInput" class="coach-chat-input" placeholder="Ask your coach…" autocomplete="off">
+                  <button type="submit" class="coach-chat-send" id="coachChatSend">
+                    <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>

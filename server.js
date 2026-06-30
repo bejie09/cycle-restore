@@ -7,9 +7,9 @@ const crypto = require("crypto");
 const OLLAMA_HOST = "http://localhost:11434";
 const AI_MODEL = "qwen3:8b";
 
-function ollamaGenerate(prompt, timeoutMs = 180000) {
+function ollamaGenerate(prompt, timeoutMs = 180000, extraOpts = {}) {
   return new Promise((resolve, reject) => {
-    const body = JSON.stringify({ model: AI_MODEL, prompt, stream: false });
+    const body = JSON.stringify({ model: AI_MODEL, prompt, stream: false, ...extraOpts });
     const req = http.request(`${OLLAMA_HOST}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) }
@@ -180,6 +180,24 @@ http.createServer(async (req, res) => {
     delete user.resetExpiry;
     saveDB(db);
     return json(res, 200, { ok: true });
+  }
+
+  if (pathname === "/api/chat" && req.method === "POST") {
+    const db = loadDB();
+    const user = userByToken(db, getToken(req));
+    if (!user) return json(res, 401, { error: "Unauthorized" });
+    const { message, context } = await parseBody(req);
+    if (!message) return json(res, 400, { error: "Message required" });
+    const ctx = context || {};
+    const contextStr = `Athlete context:\n- FTP: ${ctx.ftp || "unknown"} W (target: ${ctx.targetFtp || "unknown"} W)\n- Readiness score: ${ctx.readiness || "unknown"}/100\n- Sleep: ${ctx.sleepHours || "unknown"}h at ${ctx.sleepQuality || "unknown"}% quality\n- Training load (yesterday): ${ctx.trainingLoad || "unknown"} TSS\n- Muscle soreness: ${ctx.soreness || "unknown"}/10`;
+    const prompt = `/no_think\nYou are an expert AI cycling coach. Answer the cyclist's question with specific, actionable advice. Be concise and direct. Use plain text with no markdown.\n${contextStr}\n\nQuestion: ${message}\n\nAnswer:`;
+    try {
+      const result = await ollamaGenerate(prompt, 180000, { think: false });
+      const text = (result.response || "").trim();
+      return json(res, 200, { ok: true, response: text });
+    } catch (err) {
+      return json(res, 200, { ok: false, error: err.message });
+    }
   }
 
   if (pathname === "/api/analyze" && req.method === "POST") {

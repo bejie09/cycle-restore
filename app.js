@@ -790,6 +790,74 @@ async function submitResetPassword(e) {
   }
 }
 
+// ── Coach chat ────────────────────────────────────────────────────────────────
+
+const coachMessages = [];
+
+function renderCoachMessages() {
+  const container = document.getElementById("coachChatMessages");
+  if (!container) return;
+  if (coachMessages.length === 0) {
+    container.innerHTML = `<div class="coach-chat-empty"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>Ask your coach anything about training, recovery, or nutrition</p></div>`;
+    return;
+  }
+  container.innerHTML = coachMessages.map(msg => {
+    if (msg.role === "user") {
+      return `<div class="coach-msg coach-msg-user"><span>${escapeHtml(msg.text)}</span></div>`;
+    }
+    if (msg.role === "typing") {
+      return `<div class="coach-msg coach-msg-coach"><div class="coach-msg-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div><span class="coach-typing"><span></span><span></span><span></span></span></div>`;
+    }
+    if (msg.role === "error") {
+      return `<div class="coach-msg coach-msg-error"><span>${escapeHtml(msg.text)}</span></div>`;
+    }
+    return `<div class="coach-msg coach-msg-coach"><div class="coach-msg-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div><span>${escapeHtml(msg.text)}</span></div>`;
+  }).join("");
+  container.scrollTop = container.scrollHeight;
+}
+
+async function sendCoachMessage(e) {
+  if (e) e.preventDefault();
+  if (!currentUser) return;
+  const input = document.getElementById("coachChatInput");
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = "";
+  const sendBtn = document.getElementById("coachChatSend");
+  sendBtn.disabled = true;
+  coachMessages.push({ role: "user", text: message });
+  coachMessages.push({ role: "typing" });
+  renderCoachMessages();
+  try {
+    const context = {
+      ftp: state.ftp,
+      targetFtp: state.targetFtp,
+      readiness: calculateReadiness(),
+      sleepHours: state.sleepHours,
+      sleepQuality: state.sleepQuality,
+      trainingLoad: state.trainingLoad,
+      soreness: state.soreness
+    };
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${currentUser.token}` },
+      body: JSON.stringify({ message, context })
+    });
+    const data = await res.json();
+    coachMessages.pop();
+    coachMessages.push(data.ok
+      ? { role: "coach", text: data.response }
+      : { role: "error", text: data.error || "Could not reach AI coach." }
+    );
+  } catch {
+    coachMessages.pop();
+    coachMessages.push({ role: "error", text: "Network error. Please try again." });
+  }
+  renderCoachMessages();
+  sendBtn.disabled = false;
+  input.focus();
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 render();
