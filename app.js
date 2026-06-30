@@ -710,6 +710,9 @@ document.querySelectorAll(".nav-item").forEach((button) => {
     document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
     button.classList.add("active");
     target.classList.add("active");
+    const isToday = button.dataset.view === "today";
+    document.querySelector(".hero").style.display = isToday ? "" : "none";
+    document.querySelector(".top-grid").style.display = isToday ? "" : "none";
   });
 });
 
