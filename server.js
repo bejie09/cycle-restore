@@ -412,5 +412,5 @@ http.createServer(async (req, res) => {
     res.end(data);
   });
 }).listen(PORT, () => {
-  console.log(`CycleRestore running on http://localhost:${PORT}`);
+  console.log(`EnduraCore running on http://localhost:${PORT}`);
 });
