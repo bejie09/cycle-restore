@@ -6,6 +6,7 @@ const crypto = require("crypto");
 
 const OLLAMA_HOST = "http://localhost:11434";
 const AI_MODEL = "qwen3:8b";
+const WEBUI_HOST = "http://localhost:8081";
 
 function ollamaGenerate(prompt, timeoutMs = 180000, extraOpts = {}) {
   return new Promise((resolve, reject) => {
@@ -102,6 +103,175 @@ function json(res, status, data) {
   res.end(JSON.stringify(data));
 }
 
+// ---- Open WebUI mirroring --------------------------------------------------
+
+async function webuiFetch(pathname, method, token, body, timeoutMs = 8000) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(`${WEBUI_HOST}${pathname}`, {
+      method,
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal: controller.signal
+    });
+    const raw = await res.text();
+    let data = null;
+    try { data = raw ? JSON.parse(raw) : null; } catch { /* non-JSON body */ }
+    if (!res.ok) {
+      const err = new Error(`WebUI ${method} ${pathname} -> ${res.status}`);
+      err.status = res.status;
+      err.body = data;
+      throw err;
+    }
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Returns { userId, jwt } or throws (network error, or signup also failed
+// e.g. because the email already exists on WebUI under a DIFFERENT password).
+async function webuiSigninOrSignup(email, password) {
+  try {
+    const s = await webuiFetch("/api/v1/auths/signin", "POST", null, { email, password });
+    return { userId: s.id, jwt: s.token };
+  } catch {
+    // Signin failed: either no such account yet, or wrong password. Try to create it.
+    // If this also throws, let it propagate to the caller (nothing more we can do).
+    const s = await webuiFetch("/api/v1/auths/signup", "POST", null, {
+      name: email.split("@")[0],
+      email,
+      password
+    });
+    return { userId: s.id, jwt: s.token };
+  }
+}
+
+// Called from /api/signup and /api/login (both already have plaintext password
+// in scope). Never throws — always logs and returns. Mutates `user.webui` and
+// persists via the existing saveDB(db) only on success.
+async function ensureWebuiLink(user, password, db) {
+  try {
+    const { userId, jwt } = await webuiSigninOrSignup(user.email, password);
+    user.webui = user.webui || { chatId: null };
+    user.webui.userId = userId;
+    user.webui.jwt = jwt;
+    if (user.webui.chatId === undefined) user.webui.chatId = null;
+    saveDB(db);
+  } catch (err) {
+    console.warn(`[webui-link] ${user.email}: link/refresh failed (status=${err.status ?? "network"}): ${err.message}`);
+    // user.webui left untouched (absent if never linked before) — Coach keeps
+    // working via Ollama regardless; mirroring simply stays inactive until the
+    // next successful signup/login call retries this.
+  }
+}
+
+function buildMessagePair(userText, assistantText) {
+  const userId = crypto.randomUUID();
+  const assistantId = crypto.randomUUID();
+  const ts = Math.floor(Date.now() / 1000); // Open WebUI message timestamps are second epoch
+  const userMsg = {
+    id: userId, parentId: null, childrenIds: [assistantId],
+    role: "user", content: userText, timestamp: ts
+  };
+  const assistantMsg = {
+    id: assistantId, parentId: userId, childrenIds: [],
+    role: "assistant", content: assistantText, timestamp: ts + 1,
+    model: AI_MODEL, models: [AI_MODEL]
+  };
+  return { userMsg, assistantMsg };
+}
+
+async function createCoachChat(jwt, userMsg, assistantMsg) {
+  const chat = {
+    title: "Coach",
+    models: [AI_MODEL],
+    history: {
+      messages: { [userMsg.id]: userMsg, [assistantMsg.id]: assistantMsg },
+      currentId: assistantMsg.id
+    },
+    messages: [userMsg, assistantMsg],
+    tags: [],
+    timestamp: Date.now() // chat-level timestamp is ms epoch (different unit than message.timestamp)
+  };
+  const created = await webuiFetch("/api/v1/chats/new", "POST", jwt, { chat });
+  return created.id;
+}
+
+async function appendToCoachChat(jwt, chatId, userMsg, assistantMsg) {
+  const existing = await webuiFetch(`/api/v1/chats/${chatId}`, "GET", jwt);
+  const chat = existing.chat;
+  // Defensive: tolerate a malformed/legacy chat blob rather than throwing.
+  if (!chat.history) chat.history = { messages: {}, currentId: null };
+  if (!Array.isArray(chat.messages)) chat.messages = [];
+  const prevId = chat.history.currentId;
+  userMsg.parentId = prevId || null; // overwrite the null default from buildMessagePair
+  if (prevId && chat.history.messages[prevId]) {
+    chat.history.messages[prevId].childrenIds.push(userMsg.id);
+  }
+  chat.history.messages[userMsg.id] = userMsg;
+  chat.history.messages[assistantMsg.id] = assistantMsg;
+  chat.history.currentId = assistantMsg.id;
+  chat.messages.push(userMsg, assistantMsg);
+  chat.timestamp = Date.now();
+  // `chat` here is fetch-then-mutate-in-place, so title/models/tags/etc. are
+  // all still present verbatim -> the server's shallow top-level merge
+  // {...existing, ...chat} preserves them automatically.
+  await webuiFetch(`/api/v1/chats/${chatId}`, "POST", jwt, { chat });
+}
+
+// A 401 from a chat GET/POST is ambiguous: expired JWT, or a chat that was
+// deleted (WebUI returns 401, not 404, for a missing/not-owned chat id —
+// confirmed empirically). Disambiguate by hitting an endpoint that only cares
+// about the JWT itself: 200 means the JWT is fine and it's the chat that's
+// gone; 401 means the JWT itself is the problem.
+async function isWebuiJwtValid(jwt) {
+  try {
+    await webuiFetch("/api/v1/auths/", "GET", jwt);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Top-level entry point called from /api/chat. Never throws.
+async function appendCoachTurnToWebui(user, db, userMessage, assistantMessage) {
+  if (!user.webui || !user.webui.jwt) return; // never linked (WebUI was down at last signup/login)
+  const { userMsg, assistantMsg } = buildMessagePair(userMessage, assistantMessage);
+  try {
+    if (!user.webui.chatId) {
+      user.webui.chatId = await createCoachChat(user.webui.jwt, userMsg, assistantMsg);
+      saveDB(db);
+    } else {
+      await appendToCoachChat(user.webui.jwt, user.webui.chatId, userMsg, assistantMsg);
+    }
+  } catch (err) {
+    console.warn(`[webui-mirror] ${user.email}: turn not mirrored (status=${err.status ?? "network"}): ${err.message}`);
+    // Reset chatId only when the chat itself is confirmed gone (404, or a 401
+    // where the JWT still independently checks out) so a fresh thread starts.
+    // Leave chatId alone on a genuinely expired/invalid JWT or on
+    // network/5xx errors (transient — resetting would needlessly fragment
+    // the "one continuous chat" requirement; next login/signup refreshes the
+    // JWT and mirroring resumes into the same thread).
+    const chatConfirmedGone =
+      err.status === 404 || (err.status === 401 && (await isWebuiJwtValid(user.webui.jwt)));
+    if (chatConfirmedGone && user.webui.chatId) {
+      user.webui.chatId = null;
+      saveDB(db);
+      // Don't drop this turn: start the fresh thread with it right away.
+      try {
+        user.webui.chatId = await createCoachChat(user.webui.jwt, userMsg, assistantMsg);
+        saveDB(db);
+      } catch (retryErr) {
+        console.warn(`[webui-mirror] ${user.email}: retry-create after chat-gone failed: ${retryErr.message}`);
+      }
+    }
+  }
+}
+
 http.createServer(async (req, res) => {
   const { pathname } = new URL(req.url, "http://localhost");
 
@@ -119,6 +289,7 @@ http.createServer(async (req, res) => {
     const token = generateToken();
     db.users[key] = { email: key, salt, hash: hashPassword(password, salt), token, profile: null };
     saveDB(db);
+    await ensureWebuiLink(db.users[key], password, db);
     return json(res, 200, { token, email: key, profile: null });
   }
 
@@ -131,6 +302,7 @@ http.createServer(async (req, res) => {
       return json(res, 401, { error: "Invalid email or password" });
     user.token = generateToken();
     saveDB(db);
+    await ensureWebuiLink(user, password, db);
     return json(res, 200, { token: user.token, email: key, profile: user.profile });
   }
 
@@ -194,6 +366,14 @@ http.createServer(async (req, res) => {
     try {
       const result = await ollamaGenerate(prompt, 180000, { think: false });
       const text = (result.response || "").trim();
+      try {
+        await appendCoachTurnToWebui(user, db, message, text);
+      } catch (mirrorErr) {
+        // appendCoachTurnToWebui already catches internally and should never
+        // reach here; this is defense-in-depth so a mirroring bug can never
+        // cause a successful Ollama reply to be reported as ok:false.
+        console.warn(`[webui-mirror] unexpected error for ${user.email}: ${mirrorErr.message}`);
+      }
       return json(res, 200, { ok: true, response: text });
     } catch (err) {
       return json(res, 200, { ok: false, error: err.message });
