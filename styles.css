@@ -774,6 +774,52 @@ h2 {
 .analyze-food-btn:hover { background: var(--accent-dark); }
 .analyze-food-btn:disabled { opacity: 0.6; cursor: default; }
 
+.manual-sleep-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.manual-sleep-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.manual-sleep-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.manual-sleep-field label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.manual-sleep-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.92rem;
+  transition: border-color 0.15s;
+}
+
+.manual-sleep-field input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255,90,31,0.12);
+}
+
+@media (max-width: 640px) {
+  .manual-sleep-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
 .analyze-food-btn svg {
   width: 16px;
   height: 16px;

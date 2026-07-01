@@ -396,6 +396,13 @@ function applyProfile(profile) {
   syncInputs();
 }
 
+function switchSleepTab(tab) {
+  document.getElementById("sleep-upload-panel").style.display = tab === "upload" ? "" : "none";
+  document.getElementById("sleep-manual-panel").style.display = tab === "manual" ? "" : "none";
+  document.getElementById("sleep-tab-upload").classList.toggle("active", tab === "upload");
+  document.getElementById("sleep-tab-manual").classList.toggle("active", tab === "manual");
+}
+
 function switchNutritionTab(tab) {
   currentNutritionTab = tab;
   document.getElementById("nutrition-photo-panel").style.display = tab === "photo" ? "" : "none";
@@ -636,7 +643,7 @@ async function applyRideEstimate(file, text) {
   });
 }
 
-async function applySleepEstimate(file, text) {
+async function applySleepEstimate(file, text, headerOverride) {
   els.sleepResult.classList.add("analyzing");
   const fallback = estimateSleep(file, text);
   const ai = await analyzeWithAI("sleep", file, text);
@@ -656,7 +663,7 @@ async function applySleepEstimate(file, text) {
 
   const label = ai ? "AI" : "Estimated";
   els.sleepResult.innerHTML = `
-    <span>${summarizeFile(file)}</span>
+    <span>${headerOverride || summarizeFile(file)}</span>
     <strong>${label}: ${formatSleep(duration)} sleep · ${formatSleep(deep)} deep · ${formatSleep(rem)} REM · ${state.sleepQuality}% quality</strong>
     ${recovNote ? `<em>${escapeHtml(recovNote)}</em>` : ""}
     ${coachTip  ? `<small>${escapeHtml(coachTip)}</small>`  : ""}
@@ -673,6 +680,23 @@ async function applySleepEstimate(file, text) {
     filename: file.name,
     source: ai ? "ai" : "estimated"
   });
+}
+
+async function analyzeSleepText() {
+  const deep   = parseFloat(document.getElementById("sleepDeepInput").value) || 0;
+  const light  = parseFloat(document.getElementById("sleepLightInput").value) || 0;
+  const rem    = parseFloat(document.getElementById("sleepRemInput").value) || 0;
+  const awake  = parseFloat(document.getElementById("sleepAwakeInput").value) || 0;
+  if (!deep && !light && !rem && !awake) return;
+  const total = deep + light + rem;
+  const content = `Total sleep duration: ${total} hours\nDeep sleep: ${deep} hours\nLight sleep: ${light} hours\nREM sleep: ${rem} hours\nAwake time: ${awake} hours`;
+
+  const btn = document.getElementById("analyzeSleepBtn");
+  btn.disabled = true;
+  btn.textContent = "Analysing…";
+  await applySleepEstimate({ name: "Manual entry", size: 0 }, content, "Manual sleep entry");
+  btn.disabled = false;
+  btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg> Analyse with AI`;
 }
 
 async function applyFoodEstimate(file, text, mealType) {
