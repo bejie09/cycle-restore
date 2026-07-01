@@ -255,25 +255,27 @@ main {
   background: white;
 }
 
-.score-ring span,
-.score-ring small {
-  z-index: 1;
-}
-
 .score-ring span {
+  z-index: 1;
   font-size: 2rem;
   font-weight: 800;
 }
 
-.score-ring small {
-  margin-top: 42px;
-  position: absolute;
+.score-ring-wrap {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.score-ring-label {
   color: var(--muted);
-  font-weight: 650;
-  max-width: 96px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   text-align: center;
-  font-size: 0.7rem;
-  line-height: 1.3;
 }
 
 h2 {
