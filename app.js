@@ -37,8 +37,16 @@ const els = {
   loadBar: document.querySelector("#loadBar"),
   mainSet: document.querySelector("#mainSet"),
   mainSetCopy: document.querySelector("#mainSetCopy"),
+  warmupDuration: document.querySelector("#warmupDuration"),
+  warmupDetail: document.querySelector("#warmupDetail"),
+  cooldownDuration: document.querySelector("#cooldownDuration"),
+  cooldownDetail: document.querySelector("#cooldownDetail"),
+  ftpLevelLabel: document.querySelector("#ftpLevelLabel"),
   ftpLevel: document.querySelector("#ftpLevel"),
   ftpGap: document.querySelector("#ftpGap"),
+  sweetSpotLabel: document.querySelector("#sweetSpotLabel"),
+  thresholdLabel: document.querySelector("#thresholdLabel"),
+  vo2Label: document.querySelector("#vo2Label"),
   sweetSpotZone: document.querySelector("#sweetSpotZone"),
   thresholdZone: document.querySelector("#thresholdZone"),
   vo2Zone: document.querySelector("#vo2Zone"),
@@ -107,6 +115,7 @@ const labels = {
 let currentUser = null;
 let selectedMealType = "breakfast";
 let currentNutritionTab = "photo";
+let currentRidesTab = "cycling";
 let historyData = { rides: [], runs: [], swims: [], sleep: [], nutrition: [], coach: [] };
 const HISTORY_KEYS = { ride: "rides", run: "runs", swim: "swims", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
 
@@ -171,6 +180,99 @@ function formatPace(paceMinPerKm) {
   const mins = Math.floor(paceMinPerKm);
   const secs = Math.round((paceMinPerKm - mins) * 60);
   return `${mins}:${String(secs).padStart(2, "0")}/km`;
+}
+
+function formatPaceRange(fastPace, slowPace) {
+  const fmt = (p) => {
+    const mins = Math.floor(p);
+    const secs = Math.round((p - mins) * 60);
+    return `${mins}:${String(secs).padStart(2, "0")}`;
+  };
+  return `${fmt(fastPace)}-${fmt(slowPace)}/km`;
+}
+
+function runLevel(pace) {
+  if (!pace) return "Base";
+  if (pace <= 3.75) return "Elite";
+  if (pace <= 4.25) return "Advanced";
+  if (pace <= 5.0) return "Strong";
+  if (pace <= 6.0) return "Developing";
+  return "Base";
+}
+
+function runningRecommendation(score) {
+  const recentPace = historyData.runs[0]?.pace || null;
+  const basePace = recentPace || 6.5;
+  if (score >= 82) {
+    return {
+      main: "6 x 3 min", detail: `Intervals near ${formatPace(basePace - 0.8)} pace`,
+      warmupMain: "10 min", warmupDetail: "Easy jog with strides",
+      cooldownMain: "8 min", cooldownDetail: "Easy jog and stretch"
+    };
+  }
+  if (score >= 65) {
+    return {
+      main: "25 min", detail: `Tempo run near ${formatPace(basePace)} pace`,
+      warmupMain: "10 min", warmupDetail: "Easy jog build-up",
+      cooldownMain: "8 min", cooldownDetail: "Easy jog and stretch"
+    };
+  }
+  if (score >= 48) {
+    return {
+      main: "30 min", detail: `Easy recovery run near ${formatPace(basePace + 1.2)} pace`,
+      warmupMain: "5 min", warmupDetail: "Walk to easy jog",
+      cooldownMain: "5 min", cooldownDetail: "Walk and mobility"
+    };
+  }
+  return {
+    main: "0-20 min", detail: "Optional walk or easy mobility",
+    warmupMain: "—", warmupDetail: "Not applicable",
+    cooldownMain: "—", cooldownDetail: "Not applicable"
+  };
+}
+
+function renderTrainingPlanPanel(score) {
+  if (currentRidesTab === "running") {
+    const recentPace = historyData.runs[0]?.pace || null;
+    const basePace = recentPace || 6.5;
+    const rec = runningRecommendation(score);
+
+    els.ftpLevelLabel.textContent = "Pace level";
+    els.ftpLevel.textContent = runLevel(basePace);
+    els.ftpGap.textContent = recentPace ? "Based on your last logged run" : "Log a run to personalize your zones";
+    els.sweetSpotLabel.textContent = "Easy";
+    els.thresholdLabel.textContent = "Tempo";
+    els.vo2Label.textContent = "Interval";
+    els.sweetSpotZone.textContent = formatPaceRange(basePace + 1.0, basePace + 1.5);
+    els.thresholdZone.textContent = formatPaceRange(basePace - 0.15, basePace + 0.15);
+    els.vo2Zone.textContent = formatPaceRange(basePace - 1.0, basePace - 0.5);
+
+    els.warmupDuration.textContent = rec.warmupMain;
+    els.warmupDetail.textContent = rec.warmupDetail;
+    els.mainSet.textContent = rec.main;
+    els.mainSetCopy.textContent = rec.detail;
+    els.cooldownDuration.textContent = rec.cooldownMain;
+    els.cooldownDetail.textContent = rec.cooldownDetail;
+    return;
+  }
+
+  const rec = recommendation(score);
+  els.ftpLevelLabel.textContent = "FTP level";
+  els.ftpLevel.textContent = ftpLevel(state.ftp);
+  els.ftpGap.textContent = state.targetFtp > state.ftp ? `${state.targetFtp - state.ftp} W to target` : "Target reached";
+  els.sweetSpotLabel.textContent = "Sweet spot";
+  els.thresholdLabel.textContent = "Threshold";
+  els.vo2Label.textContent = "VO2 max";
+  els.sweetSpotZone.textContent = formatZone(0.88, 0.94);
+  els.thresholdZone.textContent = formatZone(0.95, 1.05);
+  els.vo2Zone.textContent = formatZone(1.06, 1.2);
+
+  els.warmupDuration.textContent = "12 min";
+  els.warmupDetail.textContent = "Zone 1-2 cadence build";
+  els.mainSet.textContent = rec.main;
+  els.mainSetCopy.textContent = rec.detail;
+  els.cooldownDuration.textContent = "10 min";
+  els.cooldownDetail.textContent = "Easy spin and mobility";
 }
 
 function estimateRun(file, text = "") {
@@ -377,11 +479,6 @@ function updateTargets(score) {
   els.hydrationStatus.textContent = state.hydration >= 3 ? "Hydration target met" : "Finish one more bottle";
   els.ftpMetric.textContent = `${state.ftp} W`;
   els.ftpStatus.textContent = state.targetFtp > state.ftp ? `${state.targetFtp - state.ftp} W to target` : "Target reached";
-  els.ftpLevel.textContent = ftpLevel(state.ftp);
-  els.ftpGap.textContent = state.targetFtp > state.ftp ? `${state.targetFtp - state.ftp} W to target` : "Target reached";
-  els.sweetSpotZone.textContent = formatZone(0.88, 0.94);
-  els.thresholdZone.textContent = formatZone(0.95, 1.05);
-  els.vo2Zone.textContent = formatZone(1.06, 1.2);
   els.sleepNeed.textContent = `Aim for ${formatSleep(sleepNeed)} after today's load`;
   els.carbActual.textContent = `${carbActual}g`;
   els.proteinActual.textContent = `${proteinActual}g`;
@@ -455,6 +552,8 @@ function switchRidesTab(tab) {
   document.getElementById("rides-tab-cycling").classList.toggle("active", tab === "cycling");
   document.getElementById("rides-tab-running").classList.toggle("active", tab === "running");
   document.getElementById("rides-tab-swimming").classList.toggle("active", tab === "swimming");
+  currentRidesTab = tab;
+  renderTrainingPlanPanel(calculateReadiness());
 }
 
 function switchSleepTab(tab) {
@@ -911,6 +1010,7 @@ async function fetchHistory() {
       };
       renderHistory();
       renderCoachHistory();
+      renderTrainingPlanPanel(calculateReadiness());
     }
   } catch { /* history stays as last known state */ }
 }
@@ -931,6 +1031,7 @@ async function saveHistoryRecord(type, record) {
     if (data.ok) {
       historyData[key].unshift(data.record);
       renderHistory();
+      renderTrainingPlanPanel(calculateReadiness());
     }
   } catch { /* saving to history is best-effort; the estimate itself already applied */ }
 }
@@ -1030,12 +1131,11 @@ function render() {
   els.readinessScore.textContent = score;
   els.sessionTitle.textContent = rec.title;
   els.sessionCopy.textContent = rec.copy;
-  els.mainSet.textContent = rec.main;
-  els.mainSetCopy.textContent = rec.detail;
   els.todayBar.style.setProperty("--h", rec.bar);
   els.sleepMetric.textContent = formatSleep(state.sleepHours);
   els.sleepStatus.textContent = state.sleepHours >= 7.2 ? "Strong recovery window" : "Extend tonight's target";
 
+  renderTrainingPlanPanel(score);
   updateTargets(score);
   renderNutritionSummary();
 
