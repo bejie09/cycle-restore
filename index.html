@@ -182,16 +182,16 @@
           <div class="lp-mock-ai-pill">AI Analysed</div>
           <div class="lp-mock-nutrition-circles">
             <div class="lp-mock-nutr-circle lp-nutr-carb">
-              <strong>72g/hr</strong>
-              <span>Carbs</span>
+              <strong>220g</strong>
+              <span>of 300g/day</span>
             </div>
             <div class="lp-mock-nutr-circle lp-nutr-prot">
-              <strong>32g</strong>
-              <span>Protein</span>
+              <strong>85g</strong>
+              <span>of 120g/day</span>
             </div>
             <div class="lp-mock-nutr-circle lp-nutr-fluid">
-              <strong>750ml/hr</strong>
-              <span>Fluids</span>
+              <strong>1900ml</strong>
+              <span>of 2800ml/day</span>
             </div>
           </div>
           <div class="lp-mock-meal-label">Breakfast analysed · AI photo scan</div>
@@ -200,12 +200,13 @@
       <div class="lp-feature-text">
         <div class="lp-feature-tag">Nutrition AI</div>
         <h2 class="lp-feature-h2">Fuel the right way for every ride</h2>
-        <p class="lp-feature-desc">Snap your meal or type what you ate. AI estimates carbs, protein, and fluids for your next ride — adjusted to today's training stress and your FTP goal.</p>
+        <p class="lp-feature-desc">Snap your meal or type what you ate. AI estimates carbs, protein, fluids, and calories for each meal — logged against your daily targets so you always know where you stand.</p>
         <ul class="lp-feature-bullets">
           <li>Breakfast, Lunch, Dinner &amp; Other meal types</li>
           <li>Photo scan (JPG, PNG, HEIC)</li>
           <li>Manual text entry with AI analysis</li>
-          <li>Carb &amp; protein targets per ride hour</li>
+          <li>Set your own daily carb, protein, fluid &amp; calorie targets</li>
+          <li>Red flags show exactly which nutrient needs focus</li>
         </ul>
       </div>
     </div>
@@ -312,7 +313,7 @@
       </div>
       <div class="lp-guide-card">
         <h3>Logging Nutrition</h3>
-        <p>Go to the Nutrition tab. Select Breakfast, Lunch, Dinner, or Other. Either upload a food photo or tap 'Type manually' and describe your meal in plain English (e.g. '2 eggs, toast with peanut butter, banana, orange juice'). AI returns carbs-per-hour, protein, and fluid targets specific to your training load.</p>
+        <p>Go to the Nutrition tab and set your daily carb, protein, fluid, and calorie targets — ask your AI Coach if you're not sure what to set them to. Then select Breakfast, Lunch, Dinner, or Other and either upload a food photo or tap 'Type manually' to describe your meal in plain English (e.g. '2 eggs, toast with peanut butter, banana, orange juice'). Each logged meal adds to today's total, and any nutrient still short of its target is flagged in red.</p>
       </div>
       <div class="lp-guide-card">
         <h3>Chatting with Your Coach</h3>
@@ -710,20 +711,25 @@
               <div>
                 <p class="eyebrow">Your targets</p>
                 <h2>Set your daily nutrition targets</h2>
+                <p class="nutrition-target-hint">Not sure what your daily targets should be? <button type="button" class="ask-coach-link" onclick="askCoachAboutTargets()">Ask your AI Coach</button> — try "What should my daily carb, protein, fluid, and calorie targets be?"</p>
               </div>
             </div>
             <div class="control-grid nutrition-target-grid">
               <label class="control">
-                <span>Carb target <strong id="targetCarbsValue">80g/hr</strong></span>
-                <input id="targetCarbs" type="range" min="40" max="140" value="80" step="5">
+                <span>Carb target <strong id="targetCarbsValue">300g/day</strong></span>
+                <input id="targetCarbs" type="range" min="150" max="500" value="300" step="10">
               </label>
               <label class="control">
-                <span>Protein target <strong id="targetProteinValue">35g</strong></span>
-                <input id="targetProtein" type="range" min="15" max="60" value="35" step="1">
+                <span>Protein target <strong id="targetProteinValue">120g/day</strong></span>
+                <input id="targetProtein" type="range" min="60" max="200" value="120" step="5">
               </label>
               <label class="control">
-                <span>Fluid target <strong id="targetFluidsValue">750ml/hr</strong></span>
-                <input id="targetFluids" type="range" min="400" max="1200" value="750" step="25">
+                <span>Fluid target <strong id="targetFluidsValue">2800ml/day</strong></span>
+                <input id="targetFluids" type="range" min="1500" max="4000" value="2800" step="100">
+              </label>
+              <label class="control">
+                <span>Calorie target <strong id="targetCaloriesValue">2400 kcal/day</strong></span>
+                <input id="targetCalories" type="range" min="1500" max="4000" value="2400" step="50">
               </label>
             </div>
 
@@ -731,12 +737,13 @@
             <div class="meal-type-bar">
               <span class="meal-type-label">Meal type</span>
               <div class="meal-type-pills" id="mealTypePills">
-                <button class="meal-pill active" data-meal="breakfast">Breakfast</button>
-                <button class="meal-pill" data-meal="lunch">Lunch</button>
-                <button class="meal-pill" data-meal="dinner">Dinner</button>
-                <button class="meal-pill" data-meal="other">Other</button>
+                <button class="meal-pill active" data-meal="breakfast">Breakfast<span class="meal-pill-check">✓</span></button>
+                <button class="meal-pill" data-meal="lunch">Lunch<span class="meal-pill-check">✓</span></button>
+                <button class="meal-pill" data-meal="dinner">Dinner<span class="meal-pill-check">✓</span></button>
+                <button class="meal-pill" data-meal="other">Other<span class="meal-pill-check">✓</span></button>
               </div>
             </div>
+            <p class="meal-type-hint">Log Breakfast, Lunch, and Dinner (and Other, if you snack) — each fills in below and adds up to today's total.</p>
 
             <!-- Input method tabs -->
             <div class="nutrition-tabs">
@@ -756,7 +763,7 @@
                 <div>
                   <p class="eyebrow">AI meal scan</p>
                   <h3>Upload food photo</h3>
-                  <p>Snap your meal or plate. AI estimates carbs, protein, and fluids. JPG, PNG supported — opens camera directly on mobile.</p>
+                  <p>Snap your meal or plate. AI estimates carbs, protein, fluids, and calories. JPG, PNG supported — opens camera directly on mobile.</p>
                 </div>
                 <label class="upload-button">
                   <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
@@ -789,23 +796,54 @@
               <label><input class="meal" type="checkbox"> Electrolytes packed</label>
               <label><input class="meal" type="checkbox" checked> Recovery snack ready</label>
             </div>
+
+            <!-- Today's meals breakdown -->
+            <div class="daily-meals-summary">
+              <div class="daily-meal-row">
+                <span class="daily-meal-name">Breakfast</span>
+                <span class="daily-meal-values" id="mealSummary-breakfast">Not logged yet</span>
+              </div>
+              <div class="daily-meal-row">
+                <span class="daily-meal-name">Lunch</span>
+                <span class="daily-meal-values" id="mealSummary-lunch">Not logged yet</span>
+              </div>
+              <div class="daily-meal-row">
+                <span class="daily-meal-name">Dinner</span>
+                <span class="daily-meal-values" id="mealSummary-dinner">Not logged yet</span>
+              </div>
+              <div class="daily-meal-row">
+                <span class="daily-meal-name">Other</span>
+                <span class="daily-meal-values" id="mealSummary-other">Not logged yet</span>
+              </div>
+              <div class="daily-meal-row daily-meal-row--total">
+                <span class="daily-meal-name">Today's total</span>
+                <span class="daily-meal-values" id="mealSummary-total">Log a meal below to see today's total</span>
+              </div>
+            </div>
+
             <div class="fuel-targets">
               <div id="carbFuelBox">
                 <span>Carbs</span>
-                <strong id="carbActual">72g/hr</strong>
-                <small id="carbTargetLabel">Target 80g/hr</small>
+                <strong id="carbActual">220g</strong>
+                <small id="carbTargetLabel">Target 300g/day</small>
                 <em class="fuel-flag">⚠ Focus here</em>
               </div>
               <div id="proteinFuelBox">
                 <span>Protein</span>
-                <strong id="proteinActual">32g</strong>
-                <small id="proteinTargetLabel">Target 35g</small>
+                <strong id="proteinActual">110g</strong>
+                <small id="proteinTargetLabel">Target 120g/day</small>
                 <em class="fuel-flag">⚠ Focus here</em>
               </div>
               <div id="fluidFuelBox">
                 <span>Fluids</span>
-                <strong id="fluidActual">750ml/hr</strong>
-                <small id="fluidTargetLabel">Target 750ml/hr</small>
+                <strong id="fluidActual">2600ml</strong>
+                <small id="fluidTargetLabel">Target 2800ml/day</small>
+                <em class="fuel-flag">⚠ Focus here</em>
+              </div>
+              <div id="calorieFuelBox">
+                <span>Calories</span>
+                <strong id="calorieActual">1900 kcal</strong>
+                <small id="calorieTargetLabel">Target 2400 kcal/day</small>
                 <em class="fuel-flag">⚠ Focus here</em>
               </div>
             </div>

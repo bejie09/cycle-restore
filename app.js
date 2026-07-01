@@ -7,13 +7,17 @@ const DEFAULTS = {
   targetFtp: 270,
   meals: 3,
   hydration: 2.8,
-  aiNutrition: null,
-  targetCarbs: 80,
-  targetProtein: 35,
-  targetFluids: 750
+  targetCarbs: 300,
+  targetProtein: 120,
+  targetFluids: 2800,
+  targetCalories: 2400
 };
 
-const state = { ...DEFAULTS };
+function freshDailyMeals() {
+  return { breakfast: null, lunch: null, dinner: null, other: null };
+}
+
+const state = { ...DEFAULTS, dailyMeals: freshDailyMeals() };
 const auth = { token: null, email: null };
 
 const els = {
@@ -44,17 +48,27 @@ const els = {
   carbActual: document.querySelector("#carbActual"),
   proteinActual: document.querySelector("#proteinActual"),
   fluidActual: document.querySelector("#fluidActual"),
+  calorieActual: document.querySelector("#calorieActual"),
   carbFuelBox: document.querySelector("#carbFuelBox"),
   proteinFuelBox: document.querySelector("#proteinFuelBox"),
   fluidFuelBox: document.querySelector("#fluidFuelBox"),
+  calorieFuelBox: document.querySelector("#calorieFuelBox"),
   carbTargetLabel: document.querySelector("#carbTargetLabel"),
   proteinTargetLabel: document.querySelector("#proteinTargetLabel"),
   fluidTargetLabel: document.querySelector("#fluidTargetLabel"),
+  calorieTargetLabel: document.querySelector("#calorieTargetLabel"),
   rideResult: document.querySelector("#rideResult"),
   sleepResult: document.querySelector("#sleepResult"),
   foodResult: document.querySelector("#foodResult"),
   foodPreview: document.querySelector("#foodPreview"),
-  coachNotes: document.querySelector("#coachNotes")
+  coachNotes: document.querySelector("#coachNotes"),
+  dailyMealRows: {
+    breakfast: document.querySelector("#mealSummary-breakfast"),
+    lunch: document.querySelector("#mealSummary-lunch"),
+    dinner: document.querySelector("#mealSummary-dinner"),
+    other: document.querySelector("#mealSummary-other")
+  },
+  dailyMealTotal: document.querySelector("#mealSummary-total")
 };
 
 const inputs = {
@@ -66,7 +80,8 @@ const inputs = {
   targetFtp: document.querySelector("#targetFtp"),
   targetCarbs: document.querySelector("#targetCarbs"),
   targetProtein: document.querySelector("#targetProtein"),
-  targetFluids: document.querySelector("#targetFluids")
+  targetFluids: document.querySelector("#targetFluids"),
+  targetCalories: document.querySelector("#targetCalories")
 };
 
 const labels = {
@@ -78,7 +93,8 @@ const labels = {
   targetFtp: document.querySelector("#targetFtpValue"),
   targetCarbs: document.querySelector("#targetCarbsValue"),
   targetProtein: document.querySelector("#targetProteinValue"),
-  targetFluids: document.querySelector("#targetFluidsValue")
+  targetFluids: document.querySelector("#targetFluidsValue"),
+  targetCalories: document.querySelector("#targetCaloriesValue")
 };
 
 let currentUser = null;
@@ -163,7 +179,26 @@ function estimateFood(file) {
   carbs = Math.round(clamp(carbs + sizeFactor * 3, 22, 140));
   protein = Math.round(clamp(protein + sizeFactor * 1.3, 8, 70));
   fluids = Math.round(clamp(fluids + sizeFactor * 18, 300, 1200));
-  return { carbs, protein, fluids };
+  const calories = Math.round(clamp(carbs * 4 + protein * 4 + 120, 180, 1100));
+  return { carbs, protein, fluids, calories };
+}
+
+// ── Daily meal totals ────────────────────────────────────────────────────────
+
+function dailyMealsLogged() {
+  return Object.values(state.dailyMeals).some(Boolean);
+}
+
+function dailyTotals() {
+  return Object.values(state.dailyMeals).reduce((sum, meal) => {
+    if (!meal) return sum;
+    return {
+      carbs: sum.carbs + meal.carbs,
+      protein: sum.protein + meal.protein,
+      fluids: sum.fluids + meal.fluids,
+      calories: sum.calories + meal.calories
+    };
+  }, { carbs: 0, protein: 0, fluids: 0, calories: 0 });
 }
 
 function calculateReadiness() {
@@ -246,20 +281,22 @@ function buildNotes(score) {
   } else {
     notes.push(["", "FTP target reached. Hold the gain with threshold maintenance and fresh legs."]);
   }
-  if (state.meals < 3) {
-    notes.push(["warning", "Fuel readiness is incomplete. Add carbs before the ride and protein after."]);
-  } else if (state.aiNutrition) {
+  if (dailyMealsLogged()) {
+    const totals = dailyTotals();
     const shortfalls = [];
-    if (state.aiNutrition.carbs < state.targetCarbs) shortfalls.push(`carbs (${state.aiNutrition.carbs}g vs ${state.targetCarbs}g/hr target)`);
-    if (state.aiNutrition.protein < state.targetProtein) shortfalls.push(`protein (${state.aiNutrition.protein}g vs ${state.targetProtein}g target)`);
-    if (state.aiNutrition.fluids < state.targetFluids) shortfalls.push(`fluids (${state.aiNutrition.fluids}ml vs ${state.targetFluids}ml/hr target)`);
+    if (totals.carbs < state.targetCarbs) shortfalls.push(`carbs (${totals.carbs}g vs ${state.targetCarbs}g/day target)`);
+    if (totals.protein < state.targetProtein) shortfalls.push(`protein (${totals.protein}g vs ${state.targetProtein}g/day target)`);
+    if (totals.fluids < state.targetFluids) shortfalls.push(`fluids (${totals.fluids}ml vs ${state.targetFluids}ml/day target)`);
+    if (totals.calories < state.targetCalories) shortfalls.push(`calories (${totals.calories} kcal vs ${state.targetCalories} kcal/day target)`);
     if (shortfalls.length) {
-      notes.push(["alert", `Focus here: you're short on ${shortfalls.join(" and ")}. Close this gap before your next ride.`]);
+      notes.push(["alert", `Focus here: today's logged meals are short on ${shortfalls.join(", ")}. Log your remaining meals or close this gap before your next ride.`]);
     } else {
-      notes.push(["", `AI meal scan estimates ${state.aiNutrition.carbs}g carbs, ${state.aiNutrition.protein}g protein, and ${state.aiNutrition.fluids}ml fluids — all meeting your targets.`]);
+      notes.push(["", `Today's logged meals total ${totals.carbs}g carbs, ${totals.protein}g protein, ${totals.fluids}ml fluids, ${totals.calories} kcal — all meeting your daily targets.`]);
     }
+  } else if (state.meals < 3) {
+    notes.push(["warning", "Fuel readiness is incomplete. Add carbs before the ride and protein after."]);
   } else {
-    notes.push(["", "Nutrition is close. Add electrolytes if the ride goes beyond 75 minutes."]);
+    notes.push(["", "Nutrition is close. Log Breakfast, Lunch, and Dinner in the Nutrition tab to check today's totals against your targets. Not sure what to set your targets to? Ask your AI Coach."]);
   }
   if (score < 50) notes.push(["alert", "Low readiness means the best gain comes from restraint. Bank recovery today."]);
   return notes;
@@ -269,9 +306,11 @@ function updateTargets(score) {
   const weeklyLoad = Math.round(260 + state.trainingLoad * 1.22);
   const fuelPercent = clamp(55 + state.meals * 11, 0, 100);
   const sleepNeed = clamp(7.4 + state.trainingLoad / 190 + state.soreness / 14, 7.5, 9.1);
-  const carbActual = state.aiNutrition ? state.aiNutrition.carbs : score > 80 ? 82 : score > 64 ? 72 : 45;
-  const proteinActual = state.aiNutrition ? state.aiNutrition.protein : state.trainingLoad > 95 ? 36 : 32;
-  const fluidActual = state.aiNutrition ? state.aiNutrition.fluids : state.trainingLoad > 95 ? 850 : 750;
+  const totals = dailyMealsLogged() ? dailyTotals() : null;
+  const carbActual = totals ? totals.carbs : score > 80 ? 320 : score > 64 ? 280 : 220;
+  const proteinActual = totals ? totals.protein : state.trainingLoad > 95 ? 140 : 110;
+  const fluidActual = totals ? totals.fluids : state.trainingLoad > 95 ? 3200 : 2600;
+  const calorieActual = totals ? totals.calories : score > 80 ? 2600 : score > 64 ? 2300 : 1900;
 
   els.weeklyLoad.textContent = `${weeklyLoad} TSS`;
   els.loadBar.style.width = `${clamp(weeklyLoad / 6, 20, 100)}%`;
@@ -287,17 +326,20 @@ function updateTargets(score) {
   els.thresholdZone.textContent = formatZone(0.95, 1.05);
   els.vo2Zone.textContent = formatZone(1.06, 1.2);
   els.sleepNeed.textContent = `Aim for ${formatSleep(sleepNeed)} after today's load`;
-  els.carbActual.textContent = `${carbActual}g/hr`;
+  els.carbActual.textContent = `${carbActual}g`;
   els.proteinActual.textContent = `${proteinActual}g`;
-  els.fluidActual.textContent = `${fluidActual}ml/hr`;
-  els.carbTargetLabel.textContent = `Target ${state.targetCarbs}g/hr`;
-  els.proteinTargetLabel.textContent = `Target ${state.targetProtein}g`;
-  els.fluidTargetLabel.textContent = `Target ${state.targetFluids}ml/hr`;
+  els.fluidActual.textContent = `${fluidActual}ml`;
+  els.calorieActual.textContent = `${calorieActual} kcal`;
+  els.carbTargetLabel.textContent = `Target ${state.targetCarbs}g/day`;
+  els.proteinTargetLabel.textContent = `Target ${state.targetProtein}g/day`;
+  els.fluidTargetLabel.textContent = `Target ${state.targetFluids}ml/day`;
+  els.calorieTargetLabel.textContent = `Target ${state.targetCalories} kcal/day`;
 
-  const nutritionLogged = Boolean(state.aiNutrition);
+  const nutritionLogged = Boolean(totals);
   els.carbFuelBox.classList.toggle("under-target", nutritionLogged && carbActual < state.targetCarbs);
   els.proteinFuelBox.classList.toggle("under-target", nutritionLogged && proteinActual < state.targetProtein);
   els.fluidFuelBox.classList.toggle("under-target", nutritionLogged && fluidActual < state.targetFluids);
+  els.calorieFuelBox.classList.toggle("under-target", nutritionLogged && calorieActual < state.targetCalories);
 
   const wakeHour = 6.0;
   let bedtimeHour = wakeHour + 24 - sleepNeed;
@@ -335,6 +377,17 @@ function syncInputs() {
 
 function applyProfile(profile) {
   Object.assign(state, profile ? profile : DEFAULTS);
+  // Profiles saved before daily nutrition targets existed have no targetCalories
+  // field and carry the old per-ride-hour target scale (e.g. 80g instead of 300g/day).
+  if (!profile || profile.targetCalories === undefined) {
+    state.targetCarbs = DEFAULTS.targetCarbs;
+    state.targetProtein = DEFAULTS.targetProtein;
+    state.targetFluids = DEFAULTS.targetFluids;
+    state.targetCalories = DEFAULTS.targetCalories;
+  }
+  if (!profile || !profile.dailyMeals) {
+    state.dailyMeals = freshDailyMeals();
+  }
   syncInputs();
 }
 
@@ -572,21 +625,24 @@ async function applyFoodEstimate(file, text) {
   const ai = await analyzeWithAI("nutrition", file, text || "");
   els.foodResult.classList.remove("analyzing");
 
-  const carbs   = ai?.carbs_g_per_hour ?? fallback.carbs;
-  const protein = ai?.protein_g        ?? fallback.protein;
-  const fluids  = ai?.fluids_ml        ?? fallback.fluids;
-  const summary = ai?.meal_summary;
+  const carbs    = ai?.carbs_g    ?? ai?.carbs_g_per_hour ?? fallback.carbs;
+  const protein  = ai?.protein_g  ?? fallback.protein;
+  const fluids   = ai?.fluids_ml  ?? fallback.fluids;
+  const calories = ai?.calories   ?? fallback.calories;
+  const summary  = ai?.meal_summary;
   const coachTip = ai?.coach_tip;
 
-  state.aiNutrition = { carbs: Math.round(carbs), protein: Math.round(protein), fluids: Math.round(fluids) };
-  state.meals = 4;
+  const meal = { carbs: Math.round(carbs), protein: Math.round(protein), fluids: Math.round(fluids), calories: Math.round(calories) };
+  state.dailyMeals[selectedMealType] = meal;
+  state.meals = Object.values(state.dailyMeals).filter(Boolean).length;
   state.hydration = clamp(fluids / 250, 2.4, 4.2);
-  document.querySelectorAll(".meal").forEach((meal) => { meal.checked = true; });
+  document.querySelectorAll(".meal").forEach((box) => { box.checked = true; });
 
+  const mealLabel = selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1);
   const label = ai ? "AI" : "Estimated";
   els.foodResult.innerHTML = `
-    <span>${summarizeFile(file)}</span>
-    <strong>${label}: ${state.aiNutrition.carbs}g carbs/hr · ${state.aiNutrition.protein}g protein · ${state.aiNutrition.fluids}ml fluids</strong>
+    <span>${mealLabel} logged — ${summarizeFile(file)}</span>
+    <strong>${label}: ${meal.carbs}g carbs · ${meal.protein}g protein · ${meal.fluids}ml fluids · ${meal.calories} kcal</strong>
     ${summary   ? `<em>${escapeHtml(summary)}</em>`   : ""}
     ${coachTip  ? `<small>${escapeHtml(coachTip)}</small>` : ""}
   `;
@@ -603,6 +659,28 @@ function readUploadedText(file, callback) {
 
 // ── Render ────────────────────────────────────────────────────────────────────
 
+function renderNutritionSummary() {
+  for (const type of Object.keys(state.dailyMeals)) {
+    const row = els.dailyMealRows[type];
+    const meal = state.dailyMeals[type];
+    if (row) {
+      row.textContent = meal
+        ? `${meal.carbs}g carbs · ${meal.protein}g protein · ${meal.fluids}ml fluids · ${meal.calories} kcal`
+        : "Not logged yet";
+    }
+    const pill = document.querySelector(`.meal-pill[data-meal="${type}"]`);
+    if (pill) pill.classList.toggle("logged", Boolean(meal));
+  }
+  if (els.dailyMealTotal) {
+    if (dailyMealsLogged()) {
+      const totals = dailyTotals();
+      els.dailyMealTotal.textContent = `${totals.carbs}g carbs · ${totals.protein}g protein · ${totals.fluids}ml fluids · ${totals.calories} kcal`;
+    } else {
+      els.dailyMealTotal.textContent = "Log a meal below to see today's total";
+    }
+  }
+}
+
 function render() {
   const score = calculateReadiness();
   const rec = recommendation(score);
@@ -613,9 +691,10 @@ function render() {
   labels.soreness.textContent = `${state.soreness}/10`;
   labels.ftp.textContent = `${state.ftp} W`;
   labels.targetFtp.textContent = `${state.targetFtp} W`;
-  labels.targetCarbs.textContent = `${state.targetCarbs}g/hr`;
-  labels.targetProtein.textContent = `${state.targetProtein}g`;
-  labels.targetFluids.textContent = `${state.targetFluids}ml/hr`;
+  labels.targetCarbs.textContent = `${state.targetCarbs}g/day`;
+  labels.targetProtein.textContent = `${state.targetProtein}g/day`;
+  labels.targetFluids.textContent = `${state.targetFluids}ml/day`;
+  labels.targetCalories.textContent = `${state.targetCalories} kcal/day`;
 
   els.scoreRing.style.setProperty("--score", score);
   els.readinessScore.textContent = score;
@@ -628,6 +707,7 @@ function render() {
   els.sleepStatus.textContent = state.sleepHours >= 7.2 ? "Strong recovery window" : "Extend tonight's target";
 
   updateTargets(score);
+  renderNutritionSummary();
 
   els.coachNotes.innerHTML = buildNotes(score)
     .map(([tone, text]) => `<li class="${tone}">${text}</li>`)
@@ -645,7 +725,6 @@ Object.entries(inputs).forEach(([key, input]) => {
 
 document.querySelectorAll(".meal").forEach((meal) => {
   meal.addEventListener("change", () => {
-    state.aiNutrition = null;
     state.meals = document.querySelectorAll(".meal:checked").length;
     state.hydration = 2.2 + state.meals * 0.2;
     render();
@@ -737,19 +816,33 @@ document.querySelector("#foodUpload").addEventListener("change", async (event) =
   reader.readAsDataURL(file);
 });
 
+function switchView(viewName) {
+  const button = document.querySelector(`.nav-item[data-view="${viewName}"]`);
+  const target = document.querySelector(`#${viewName}`);
+  if (!button || !target) return;
+  document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
+  document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
+  button.classList.add("active");
+  target.classList.add("active");
+  const isToday = viewName === "today";
+  document.querySelector(".hero").style.display = isToday ? "" : "none";
+  document.querySelector(".top-grid").style.display = isToday ? "" : "none";
+}
+
 document.querySelectorAll(".nav-item").forEach((button) => {
-  button.addEventListener("click", () => {
-    const target = document.querySelector(`#${button.dataset.view}`);
-    if (!target) return;
-    document.querySelectorAll(".nav-item").forEach((item) => item.classList.remove("active"));
-    document.querySelectorAll(".view").forEach((view) => view.classList.remove("active"));
-    button.classList.add("active");
-    target.classList.add("active");
-    const isToday = button.dataset.view === "today";
-    document.querySelector(".hero").style.display = isToday ? "" : "none";
-    document.querySelector(".top-grid").style.display = isToday ? "" : "none";
-  });
+  button.addEventListener("click", () => switchView(button.dataset.view));
 });
+
+function askCoachAboutTargets() {
+  switchView("coach");
+  const input = document.getElementById("coachChatInput");
+  if (input) {
+    input.value = "What should my daily carb, protein, fluid, and calorie targets be?";
+    input.focus();
+  }
+  const row = document.getElementById("coachSuggestedRow");
+  if (row) row.style.display = "none";
+}
 
 document.querySelector("#optimizeBtn").addEventListener("click", () => {
   inputs.sleepHours.value = 8.1;

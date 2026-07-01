@@ -730,6 +730,113 @@ input[type="checkbox"] {
   margin-bottom: 20px;
 }
 
+.nutrition-target-hint {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.ask-coach-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ask-coach-link:hover {
+  color: var(--accent-dark);
+}
+
+.meal-type-hint {
+  margin: 10px 0 14px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.meal-pill {
+  position: relative;
+  padding-right: 26px;
+}
+
+.meal-pill-check {
+  display: none;
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #15803d;
+}
+
+.meal-pill.logged .meal-pill-check {
+  display: inline-block;
+}
+
+.meal-pill.logged {
+  border-color: #15803d;
+}
+
+.meal-pill.active.logged .meal-pill-check {
+  color: #fff;
+}
+
+.daily-meals-summary {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #faf8f6;
+}
+
+.daily-meal-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.daily-meal-name {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.daily-meal-values {
+  text-align: right;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+.daily-meal-row--total {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.daily-meal-row--total .daily-meal-name,
+.daily-meal-row--total .daily-meal-values {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.fuel-targets {
+  flex-wrap: wrap;
+}
+
+.fuel-targets > div {
+  flex: 1 1 140px;
+}
+
 .fuel-targets small {
   display: block;
   color: var(--muted);

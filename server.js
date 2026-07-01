@@ -38,7 +38,7 @@ function buildPrompt(type, filename, content) {
     return `/no_think\nYou are a sleep science analyst. Analyze this sleep record and return ONLY a single-line JSON object with no markdown, no explanation, no extra text.\nFilename: ${filename}\nContent:\n${snip}\n\nReturn exactly this structure (use null if unknown):\n{"duration_hours":number,"deep_sleep_hours":number,"rem_hours":number,"light_sleep_hours":number,"sleep_quality_pct":number,"bedtime":"string","wake_time":"string","recovery_note":"string","coach_tip":"string"}`;
   }
   if (type === "nutrition") {
-    return `/no_think\nYou are a sports nutritionist advising a cyclist. Analyze this meal and return ONLY a single-line JSON object with no markdown, no explanation, no extra text. Estimate realistic values based on typical portion sizes.\nFilename: ${filename}\nContent:\n${snip}\n\nReturn exactly this structure:\n{"carbs_g_per_hour":number,"protein_g":number,"fluids_ml":number,"meal_summary":"string 1 sentence describing the meal","coach_tip":"string 1 sentence cycling-specific fuel advice"}`;
+    return `/no_think\nYou are a sports nutritionist advising a cyclist. Analyze this single meal and return ONLY a single-line JSON object with no markdown, no explanation, no extra text. Estimate realistic totals for this meal alone, based on typical portion sizes.\nFilename: ${filename}\nContent:\n${snip}\n\nReturn exactly this structure:\n{"carbs_g":number,"protein_g":number,"fluids_ml":number,"calories":number,"meal_summary":"string 1 sentence describing the meal","coach_tip":"string 1 sentence cycling-specific fuel advice"}`;
   }
   return null;
 }
