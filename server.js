@@ -98,6 +98,16 @@ function userByToken(db, token) {
   return Object.values(db.users).find(u => u.token === token) || null;
 }
 
+// ---- Ride / sleep / nutrition history ---------------------------------------
+
+const HISTORY_TYPES = { ride: "rides", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
+
+function ensureHistory(user) {
+  if (!user.history) user.history = { rides: [], sleep: [], nutrition: [], coach: [] };
+  if (!user.history.coach) user.history.coach = [];
+  return user.history;
+}
+
 function json(res, status, data) {
   res.writeHead(status, { "Content-Type": "application/json" });
   res.end(JSON.stringify(data));
@@ -366,6 +376,13 @@ http.createServer(async (req, res) => {
     try {
       const result = await ollamaGenerate(prompt, 180000, { think: false });
       const text = (result.response || "").trim();
+      ensureHistory(user).coach.push({
+        id: crypto.randomUUID(),
+        timestamp: Date.now(),
+        message,
+        response: text
+      });
+      saveDB(db);
       try {
         await appendCoachTurnToWebui(user, db, message, text);
       } catch (mirrorErr) {
@@ -396,6 +413,50 @@ http.createServer(async (req, res) => {
     } catch (err) {
       return json(res, 200, { ok: false, error: err.message });
     }
+  }
+
+  if (pathname === "/api/history" && req.method === "GET") {
+    const db = loadDB();
+    const user = userByToken(db, getToken(req));
+    if (!user) return json(res, 401, { error: "Unauthorized" });
+    const history = ensureHistory(user);
+    return json(res, 200, {
+      rides: [...history.rides].sort((a, b) => b.timestamp - a.timestamp),
+      sleep: [...history.sleep].sort((a, b) => b.timestamp - a.timestamp),
+      nutrition: [...history.nutrition].sort((a, b) => b.timestamp - a.timestamp),
+      coach: [...history.coach].sort((a, b) => b.timestamp - a.timestamp)
+    });
+  }
+
+  if (pathname === "/api/history" && req.method === "POST") {
+    const db = loadDB();
+    const user = userByToken(db, getToken(req));
+    if (!user) return json(res, 401, { error: "Unauthorized" });
+    const { type, record } = await parseBody(req);
+    const key = HISTORY_TYPES[type];
+    if (!key || !record || typeof record !== "object")
+      return json(res, 400, { error: "Invalid type or record" });
+    const history = ensureHistory(user);
+    const saved = { id: crypto.randomUUID(), timestamp: Date.now(), ...record };
+    history[key].push(saved);
+    saveDB(db);
+    return json(res, 200, { ok: true, record: saved });
+  }
+
+  const historyDeleteMatch = pathname.match(/^\/api\/history\/([^/]+)\/([^/]+)$/);
+  if (historyDeleteMatch && req.method === "DELETE") {
+    const db = loadDB();
+    const user = userByToken(db, getToken(req));
+    if (!user) return json(res, 401, { error: "Unauthorized" });
+    const [, type, id] = historyDeleteMatch;
+    const key = HISTORY_TYPES[type];
+    if (!key) return json(res, 400, { error: "Invalid type" });
+    const history = ensureHistory(user);
+    const before = history[key].length;
+    history[key] = history[key].filter(r => r.id !== id);
+    if (history[key].length === before) return json(res, 404, { error: "Record not found" });
+    saveDB(db);
+    return json(res, 200, { ok: true });
   }
 
   // Static file serving

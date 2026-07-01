@@ -68,7 +68,10 @@ const els = {
     dinner: document.querySelector("#mealSummary-dinner"),
     other: document.querySelector("#mealSummary-other")
   },
-  dailyMealTotal: document.querySelector("#mealSummary-total")
+  dailyMealTotal: document.querySelector("#mealSummary-total"),
+  historyRides: document.querySelector("#historyRides"),
+  historySleep: document.querySelector("#historySleep"),
+  historyNutrition: document.querySelector("#historyNutrition")
 };
 
 const inputs = {
@@ -100,6 +103,8 @@ const labels = {
 let currentUser = null;
 let selectedMealType = "breakfast";
 let currentNutritionTab = "photo";
+let historyData = { rides: [], sleep: [], nutrition: [], coach: [] };
+const HISTORY_KEYS = { ride: "rides", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -397,18 +402,41 @@ function switchNutritionTab(tab) {
   document.getElementById("nutrition-manual-panel").style.display = tab === "manual" ? "" : "none";
   document.getElementById("tab-photo").classList.toggle("active", tab === "photo");
   document.getElementById("tab-manual").classList.toggle("active", tab === "manual");
+  // The meal-type selector only matters for the single-target photo upload —
+  // manual entry has its own labeled section per meal, so hide it there.
+  const mealTypeBar = document.querySelector(".meal-type-bar");
+  const mealTypeHint = document.querySelector(".meal-type-hint");
+  if (mealTypeBar) mealTypeBar.style.display = tab === "photo" ? "" : "none";
+  if (mealTypeHint) mealTypeHint.style.display = tab === "photo" ? "" : "none";
 }
 
-async function analyzeFoodText() {
-  const text = document.getElementById("foodTextInput").value.trim();
+function renderMealResult(resultEl, meal, summary, coachTip, usedAi, headerText) {
+  const label = usedAi ? "AI" : "Estimated";
+  resultEl.innerHTML = `
+    ${headerText ? `<span>${headerText}</span>` : ""}
+    <strong>${label}: ${meal.carbs}g carbs · ${meal.protein}g protein · ${meal.fluids}ml fluids · ${meal.calories} kcal</strong>
+    ${summary   ? `<em>${escapeHtml(summary)}</em>`   : ""}
+    ${coachTip  ? `<small>${escapeHtml(coachTip)}</small>` : ""}
+  `;
+  resultEl.style.display = "";
+}
+
+async function analyzeFoodText(mealType) {
+  const textarea = document.getElementById(`foodTextInput-${mealType}`);
+  const text = textarea.value.trim();
   if (!text) return;
-  const btn = document.getElementById("analyzeFoodTextBtn");
+  const mealLabel = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+  const btn = document.getElementById(`analyzeFoodBtn-${mealType}`);
+  const resultEl = document.getElementById(`foodResult-${mealType}`);
   btn.disabled = true;
   btn.textContent = "Analysing…";
-  const mealLabel = selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1);
+  resultEl.style.display = "";
+  resultEl.classList.add("analyzing");
+  resultEl.innerHTML = `<strong>AI is analysing your ${mealLabel}…</strong>`;
   const content = `Meal type: ${mealLabel}\nFood: ${text}`;
-  els.foodResult.innerHTML = `<span>${mealLabel} — manual entry</span><strong>AI is analysing your meal…</strong>`;
-  await applyFoodEstimate({ name: `${mealLabel} (manual)`, size: 0 }, content);
+  const { meal, summary, coachTip, usedAi } = await applyFoodEstimate({ name: `${mealLabel} (manual)`, size: 0 }, content, mealType);
+  resultEl.classList.remove("analyzing");
+  renderMealResult(resultEl, meal, summary, coachTip, usedAi);
   btn.disabled = false;
   btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg> Analyse with AI`;
 }
@@ -440,6 +468,7 @@ function onAuthSuccess(user) {
   document.getElementById("nav-user").textContent = user.email;
   applyProfile(user.profile);
   render();
+  fetchHistory();
 }
 
 function doSignOut() {
@@ -451,6 +480,9 @@ function doSignOut() {
   document.getElementById("login-password").value = "";
   showAuthForm("register");
   applyProfile(null);
+  historyData = { rides: [], sleep: [], nutrition: [], coach: [] };
+  renderHistory();
+  renderCoachHistory();
 }
 
 function showAuthError(formId, msg) {
@@ -589,6 +621,19 @@ async function applyRideEstimate(file, text) {
     ${coachTip ? `<small>${escapeHtml(coachTip)}</small>` : ""}
   `;
   render();
+
+  saveHistoryRecord("ride", {
+    distance: Math.round(distance),
+    minutes: Math.round(minutes),
+    calories: Math.round(calories),
+    tss: state.trainingLoad,
+    ftpWatts: ftpWatts ? state.ftp : null,
+    sessionTitle: sessionTitle || null,
+    sessionNote: sessionNote || null,
+    coachTip: coachTip || null,
+    filename: file.name,
+    source: ai ? "ai" : "estimated"
+  });
 }
 
 async function applySleepEstimate(file, text) {
@@ -617,13 +662,22 @@ async function applySleepEstimate(file, text) {
     ${coachTip  ? `<small>${escapeHtml(coachTip)}</small>`  : ""}
   `;
   render();
+
+  saveHistoryRecord("sleep", {
+    duration: state.sleepHours,
+    deep: Number(deep.toFixed(1)),
+    rem: Number(rem.toFixed(1)),
+    quality: state.sleepQuality,
+    recoveryNote: recovNote || null,
+    coachTip: coachTip || null,
+    filename: file.name,
+    source: ai ? "ai" : "estimated"
+  });
 }
 
-async function applyFoodEstimate(file, text) {
-  els.foodResult.classList.add("analyzing");
+async function applyFoodEstimate(file, text, mealType) {
   const fallback = estimateFood(file);
   const ai = await analyzeWithAI("nutrition", file, text || "");
-  els.foodResult.classList.remove("analyzing");
 
   const carbs    = ai?.carbs_g    ?? ai?.carbs_g_per_hour ?? fallback.carbs;
   const protein  = ai?.protein_g  ?? fallback.protein;
@@ -633,20 +687,20 @@ async function applyFoodEstimate(file, text) {
   const coachTip = ai?.coach_tip;
 
   const meal = { carbs: Math.round(carbs), protein: Math.round(protein), fluids: Math.round(fluids), calories: Math.round(calories) };
-  state.dailyMeals[selectedMealType] = meal;
+  state.dailyMeals[mealType] = meal;
   state.meals = Object.values(state.dailyMeals).filter(Boolean).length;
   state.hydration = clamp(fluids / 250, 2.4, 4.2);
-  document.querySelectorAll(".meal").forEach((box) => { box.checked = true; });
-
-  const mealLabel = selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1);
-  const label = ai ? "AI" : "Estimated";
-  els.foodResult.innerHTML = `
-    <span>${mealLabel} logged — ${summarizeFile(file)}</span>
-    <strong>${label}: ${meal.carbs}g carbs · ${meal.protein}g protein · ${meal.fluids}ml fluids · ${meal.calories} kcal</strong>
-    ${summary   ? `<em>${escapeHtml(summary)}</em>`   : ""}
-    ${coachTip  ? `<small>${escapeHtml(coachTip)}</small>` : ""}
-  `;
   render();
+
+  saveHistoryRecord("nutrition", {
+    mealType,
+    ...meal,
+    summary: summary || null,
+    coachTip: coachTip || null,
+    source: ai ? "ai" : "estimated"
+  });
+
+  return { meal, summary, coachTip, usedAi: Boolean(ai) };
 }
 
 function readUploadedText(file, callback) {
@@ -657,19 +711,113 @@ function readUploadedText(file, callback) {
   reader.readAsText(file);
 }
 
+// ── History (saved rides / sleep / nutrition records) ───────────────────────
+
+function formatHistoryDate(timestamp) {
+  return new Date(timestamp).toLocaleString(undefined, {
+    month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
+  });
+}
+
+async function fetchHistory() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch("/api/history", {
+      headers: { "Authorization": `Bearer ${currentUser.token}` }
+    });
+    const data = await res.json();
+    if (res.ok) {
+      historyData = {
+        rides: data.rides || [],
+        sleep: data.sleep || [],
+        nutrition: data.nutrition || [],
+        coach: data.coach || []
+      };
+      renderHistory();
+      renderCoachHistory();
+    }
+  } catch { /* history stays as last known state */ }
+}
+
+async function saveHistoryRecord(type, record) {
+  if (!currentUser) return;
+  const key = HISTORY_KEYS[type];
+  try {
+    const res = await fetch("/api/history", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser.token}`
+      },
+      body: JSON.stringify({ type, record })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      historyData[key].unshift(data.record);
+      renderHistory();
+    }
+  } catch { /* saving to history is best-effort; the estimate itself already applied */ }
+}
+
+async function deleteHistoryRecord(type, id) {
+  if (!currentUser) return;
+  const key = HISTORY_KEYS[type];
+  try {
+    const res = await fetch(`/api/history/${type}/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${currentUser.token}` }
+    });
+    if (res.ok) {
+      historyData[key] = historyData[key].filter((r) => r.id !== id);
+      renderHistory();
+    }
+  } catch { /* leave the record visible if the delete failed */ }
+}
+
+function renderHistoryList(container, type, records, emptyText, formatItem) {
+  if (!container) return;
+  if (!records.length) {
+    container.innerHTML = `<p class="history-empty">${emptyText}</p>`;
+    return;
+  }
+  container.innerHTML = records.map((record) => `
+    <div class="history-item">
+      <div class="history-item-main">
+        <strong>${formatItem(record)}</strong>
+        <span>${formatHistoryDate(record.timestamp)}${record.filename ? ` · ${escapeHtml(record.filename)}` : ""}</span>
+      </div>
+      <button class="history-delete" type="button" onclick="deleteHistoryRecord('${type}','${record.id}')" aria-label="Delete record">×</button>
+    </div>
+  `).join("");
+}
+
+function renderHistory() {
+  renderHistoryList(els.historyRides, "ride", historyData.rides, "No rides logged yet.", (r) =>
+    `${r.distance} km · ${r.minutes} min · ${r.calories} kcal · ${r.tss} TSS${r.ftpWatts ? ` · ${r.ftpWatts} W FTP` : ""}`
+  );
+  renderHistoryList(els.historySleep, "sleep", historyData.sleep, "No sleep records logged yet.", (r) =>
+    `${formatSleep(r.duration)} sleep · ${formatSleep(r.deep)} deep · ${formatSleep(r.rem)} REM · ${r.quality}% quality`
+  );
+  renderHistoryList(els.historyNutrition, "nutrition", historyData.nutrition, "No meals logged yet.", (r) =>
+    `${r.mealType.charAt(0).toUpperCase() + r.mealType.slice(1)} · ${r.carbs}g carbs · ${r.protein}g protein · ${r.fluids}ml fluids · ${r.calories} kcal`
+  );
+}
+
 // ── Render ────────────────────────────────────────────────────────────────────
 
 function renderNutritionSummary() {
   for (const type of Object.keys(state.dailyMeals)) {
     const row = els.dailyMealRows[type];
     const meal = state.dailyMeals[type];
-    if (row) {
-      row.textContent = meal
-        ? `${meal.carbs}g carbs · ${meal.protein}g protein · ${meal.fluids}ml fluids · ${meal.calories} kcal`
-        : "Not logged yet";
+    const rowWrap = document.getElementById(`mealSummaryRow-${type}`);
+    if (row && meal) {
+      row.textContent = `${meal.carbs}g carbs · ${meal.protein}g protein · ${meal.fluids}ml fluids · ${meal.calories} kcal`;
     }
+    if (rowWrap) rowWrap.style.display = meal ? "" : "none";
     const pill = document.querySelector(`.meal-pill[data-meal="${type}"]`);
     if (pill) pill.classList.toggle("logged", Boolean(meal));
+    const manualEntry = document.querySelector(`.manual-food-entry[data-meal="${type}"]`);
+    if (manualEntry) manualEntry.classList.toggle("logged", Boolean(meal));
   }
   if (els.dailyMealTotal) {
     if (dailyMealsLogged()) {
@@ -723,19 +871,9 @@ Object.entries(inputs).forEach(([key, input]) => {
   input.addEventListener("input", () => { state[key] = Number(input.value); render(); });
 });
 
-document.querySelectorAll(".meal").forEach((meal) => {
-  meal.addEventListener("change", () => {
-    state.meals = document.querySelectorAll(".meal:checked").length;
-    state.hydration = 2.2 + state.meals * 0.2;
-    render();
-  });
-});
-
-document.querySelectorAll(".meal-pill").forEach((pill) => {
-  pill.addEventListener("click", () => {
-    document.querySelectorAll(".meal-pill").forEach(p => p.classList.remove("active"));
-    pill.classList.add("active");
-    selectedMealType = pill.dataset.meal;
+document.querySelectorAll(".meal-type-radio").forEach((radio) => {
+  radio.addEventListener("change", () => {
+    if (radio.checked) selectedMealType = radio.value;
   });
 });
 
@@ -803,15 +941,24 @@ document.querySelector("#sleepUpload").addEventListener("change", async (event) 
 document.querySelector("#foodUpload").addEventListener("change", async (event) => {
   const file = event.target.files[0];
   if (!file) return;
-  els.foodResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is analyzing your food photo…</strong>`;
+  const mealType = selectedMealType;
+  const mealLabel = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+  els.foodResult.classList.add("analyzing");
+  els.foodResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is analyzing your ${mealLabel} photo…</strong>`;
   const reader = new FileReader();
   reader.addEventListener("load", async () => {
     showPhotoPreview(els.foodPreview, reader.result, file.name);
-    readUploadedText(file, async (text) => { await applyFoodEstimate(file, text); });
+    readUploadedText(file, async (text) => {
+      const { meal, summary, coachTip, usedAi } = await applyFoodEstimate(file, text, mealType);
+      els.foodResult.classList.remove("analyzing");
+      renderMealResult(els.foodResult, meal, summary, coachTip, usedAi, `${mealLabel} logged — ${summarizeFile(file)}`);
+    });
   });
   reader.addEventListener("error", async () => {
     showPhotoPreview(els.foodPreview, null, file.name);
-    await applyFoodEstimate(file, "");
+    const { meal, summary, coachTip, usedAi } = await applyFoodEstimate(file, "", mealType);
+    els.foodResult.classList.remove("analyzing");
+    renderMealResult(els.foodResult, meal, summary, coachTip, usedAi, `${mealLabel} logged — ${summarizeFile(file)}`);
   });
   reader.readAsDataURL(file);
 });
@@ -922,6 +1069,21 @@ async function submitResetPassword(e) {
 
 const coachMessages = [];
 
+function formatChatTime(timestamp) {
+  return new Date(timestamp).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function formatChatDay(timestamp) {
+  const date = new Date(timestamp);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a, b) => a.toDateString() === b.toDateString();
+  if (sameDay(date, today)) return "Today";
+  if (sameDay(date, yesterday)) return "Yesterday";
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
 function renderCoachMessages() {
   const container = document.getElementById("coachChatMessages");
   if (!container) return;
@@ -930,16 +1092,17 @@ function renderCoachMessages() {
     return;
   }
   container.innerHTML = coachMessages.map(msg => {
+    const time = msg.ts ? `<time class="coach-msg-time">${formatChatTime(msg.ts)}</time>` : "";
     if (msg.role === "user") {
-      return `<div class="coach-msg coach-msg-user"><span>${escapeHtml(msg.text)}</span></div>`;
+      return `<div class="coach-msg coach-msg-user"><span>${escapeHtml(msg.text)}</span>${time}</div>`;
     }
     if (msg.role === "typing") {
       return `<div class="coach-msg coach-msg-coach"><div class="coach-msg-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div><span class="coach-typing"><span></span><span></span><span></span></span></div>`;
     }
     if (msg.role === "error") {
-      return `<div class="coach-msg coach-msg-error"><span>${escapeHtml(msg.text)}</span></div>`;
+      return `<div class="coach-msg coach-msg-error"><span>${escapeHtml(msg.text)}</span>${time}</div>`;
     }
-    return `<div class="coach-msg coach-msg-coach"><div class="coach-msg-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div><span>${escapeHtml(msg.text)}</span></div>`;
+    return `<div class="coach-msg coach-msg-coach"><div class="coach-msg-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div><span>${escapeHtml(msg.text)}</span>${time}</div>`;
   }).join("");
   container.scrollTop = container.scrollHeight;
 }
@@ -949,6 +1112,42 @@ function clearCoachChat() {
   renderCoachMessages();
   const row = document.getElementById("coachSuggestedRow");
   if (row) row.style.display = "";
+}
+
+let showingCoachHistory = false;
+
+function renderCoachHistory() {
+  const container = document.getElementById("coachChatHistory");
+  if (!container) return;
+  const turns = [...historyData.coach].sort((a, b) => a.timestamp - b.timestamp);
+  if (turns.length === 0) {
+    container.innerHTML = `<div class="coach-chat-empty"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No past conversations yet</p></div>`;
+    return;
+  }
+  let lastDay = null;
+  const parts = [];
+  for (const turn of turns) {
+    const day = formatChatDay(turn.timestamp);
+    if (day !== lastDay) {
+      parts.push(`<div class="coach-history-date">${day}</div>`);
+      lastDay = day;
+    }
+    parts.push(`<div class="coach-msg coach-msg-user"><span>${escapeHtml(turn.message)}</span><time class="coach-msg-time">${formatChatTime(turn.timestamp)}</time></div>`);
+    parts.push(`<div class="coach-msg coach-msg-coach"><div class="coach-msg-avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div><span>${escapeHtml(turn.response)}</span><time class="coach-msg-time">${formatChatTime(turn.timestamp)}</time></div>`);
+  }
+  container.innerHTML = parts.join("");
+  container.scrollTop = container.scrollHeight;
+}
+
+function toggleCoachHistory() {
+  showingCoachHistory = !showingCoachHistory;
+  const liveEl = document.getElementById("coachChatMessages");
+  const histEl = document.getElementById("coachChatHistory");
+  const btn = document.getElementById("coachHistoryToggle");
+  if (liveEl) liveEl.style.display = showingCoachHistory ? "none" : "";
+  if (histEl) histEl.style.display = showingCoachHistory ? "" : "none";
+  if (btn) btn.classList.toggle("active", showingCoachHistory);
+  if (showingCoachHistory) renderCoachHistory();
 }
 
 function useSuggestion(btn) {
@@ -977,11 +1176,12 @@ async function sendCoachMessage() {
   const message = input.value.trim();
   if (!message) return;
   input.value = "";
+  if (showingCoachHistory) toggleCoachHistory();
   const sendBtn = document.getElementById("coachChatSend");
   sendBtn.disabled = true;
   const sugRow = document.getElementById("coachSuggestedRow");
   if (sugRow) sugRow.style.display = "none";
-  coachMessages.push({ role: "user", text: message });
+  coachMessages.push({ role: "user", text: message, ts: Date.now() });
   coachMessages.push({ role: "typing" });
   renderCoachMessages();
   try {
@@ -1002,12 +1202,13 @@ async function sendCoachMessage() {
     const data = await res.json();
     coachMessages.pop();
     coachMessages.push(data.ok
-      ? { role: "coach", text: data.response }
-      : { role: "error", text: data.error || "Could not reach AI coach." }
+      ? { role: "coach", text: data.response, ts: Date.now() }
+      : { role: "error", text: data.error || "Could not reach AI coach.", ts: Date.now() }
     );
+    if (data.ok) fetchHistory();
   } catch {
     coachMessages.pop();
-    coachMessages.push({ role: "error", text: "Network error. Please try again." });
+    coachMessages.push({ role: "error", text: "Network error. Please try again.", ts: Date.now() });
   }
   renderCoachMessages();
   sendBtn.disabled = false;

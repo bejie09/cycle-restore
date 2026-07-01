@@ -502,6 +502,10 @@
           <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
           Coach
         </button>
+        <button class="nav-item" data-view="history" type="button">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 3"/></svg>
+          History
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -737,10 +741,22 @@
             <div class="meal-type-bar">
               <span class="meal-type-label">Meal type</span>
               <div class="meal-type-pills" id="mealTypePills">
-                <button class="meal-pill active" data-meal="breakfast">Breakfast<span class="meal-pill-check">✓</span></button>
-                <button class="meal-pill" data-meal="lunch">Lunch<span class="meal-pill-check">✓</span></button>
-                <button class="meal-pill" data-meal="dinner">Dinner<span class="meal-pill-check">✓</span></button>
-                <button class="meal-pill" data-meal="other">Other<span class="meal-pill-check">✓</span></button>
+                <label class="meal-pill" data-meal="breakfast">
+                  <input type="radio" name="mealType" class="meal-type-radio" value="breakfast" checked>
+                  Breakfast<span class="meal-pill-check">✓</span>
+                </label>
+                <label class="meal-pill" data-meal="lunch">
+                  <input type="radio" name="mealType" class="meal-type-radio" value="lunch">
+                  Lunch<span class="meal-pill-check">✓</span>
+                </label>
+                <label class="meal-pill" data-meal="dinner">
+                  <input type="radio" name="mealType" class="meal-type-radio" value="dinner">
+                  Dinner<span class="meal-pill-check">✓</span>
+                </label>
+                <label class="meal-pill" data-meal="other">
+                  <input type="radio" name="mealType" class="meal-type-radio" value="other">
+                  Other<span class="meal-pill-check">✓</span>
+                </label>
               </div>
             </div>
             <p class="meal-type-hint">Log Breakfast, Lunch, and Dinner (and Other, if you snack) — each fills in below and adds up to today's total.</p>
@@ -772,48 +788,69 @@
                 </label>
               </div>
               <div class="food-preview" id="foodPreview" aria-live="polite"></div>
+              <div class="ai-result" id="foodResult">
+                <span>No meal logged yet</span>
+                <strong>AI nutrition estimate will appear here.</strong>
+              </div>
             </div>
 
             <!-- Manual entry panel -->
             <div id="nutrition-manual-panel" style="display:none">
-              <div class="manual-food-entry">
-                <label class="manual-food-label" for="foodTextInput">Describe your meal</label>
-                <textarea id="foodTextInput" placeholder="e.g. 2 scrambled eggs, 2 slices of toast with peanut butter, orange juice, one banana…" rows="4"></textarea>
-                <button class="analyze-food-btn" id="analyzeFoodTextBtn" onclick="analyzeFoodText()">
+              <div class="manual-food-entry" data-meal="breakfast">
+                <label class="manual-food-label" for="foodTextInput-breakfast">Breakfast <span class="manual-food-logged-badge">✓ Logged</span></label>
+                <textarea id="foodTextInput-breakfast" placeholder="e.g. 2 scrambled eggs, toast with peanut butter, orange juice, one banana…" rows="3"></textarea>
+                <button class="analyze-food-btn" id="analyzeFoodBtn-breakfast" onclick="analyzeFoodText('breakfast')">
                   <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg>
                   Analyse with AI
                 </button>
+                <div class="ai-result manual-meal-result" id="foodResult-breakfast" style="display:none"></div>
               </div>
-            </div>
-
-            <div class="ai-result" id="foodResult">
-              <span>No meal logged yet</span>
-              <strong>AI nutrition estimate will appear here.</strong>
-            </div>
-            <div class="meal-grid">
-              <label><input class="meal" type="checkbox" checked> Carbs loaded</label>
-              <label><input class="meal" type="checkbox" checked> Protein within 45 min</label>
-              <label><input class="meal" type="checkbox"> Electrolytes packed</label>
-              <label><input class="meal" type="checkbox" checked> Recovery snack ready</label>
+              <div class="manual-food-entry" data-meal="lunch">
+                <label class="manual-food-label" for="foodTextInput-lunch">Lunch <span class="manual-food-logged-badge">✓ Logged</span></label>
+                <textarea id="foodTextInput-lunch" placeholder="e.g. grilled chicken wrap, side salad, a bottle of water…" rows="3"></textarea>
+                <button class="analyze-food-btn" id="analyzeFoodBtn-lunch" onclick="analyzeFoodText('lunch')">
+                  <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg>
+                  Analyse with AI
+                </button>
+                <div class="ai-result manual-meal-result" id="foodResult-lunch" style="display:none"></div>
+              </div>
+              <div class="manual-food-entry" data-meal="dinner">
+                <label class="manual-food-label" for="foodTextInput-dinner">Dinner <span class="manual-food-logged-badge">✓ Logged</span></label>
+                <textarea id="foodTextInput-dinner" placeholder="e.g. salmon, rice, steamed vegetables…" rows="3"></textarea>
+                <button class="analyze-food-btn" id="analyzeFoodBtn-dinner" onclick="analyzeFoodText('dinner')">
+                  <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg>
+                  Analyse with AI
+                </button>
+                <div class="ai-result manual-meal-result" id="foodResult-dinner" style="display:none"></div>
+              </div>
+              <div class="manual-food-entry" data-meal="other">
+                <label class="manual-food-label" for="foodTextInput-other">Other <span class="manual-food-logged-badge">✓ Logged</span></label>
+                <textarea id="foodTextInput-other" placeholder="e.g. protein bar, a snack, an extra drink…" rows="3"></textarea>
+                <button class="analyze-food-btn" id="analyzeFoodBtn-other" onclick="analyzeFoodText('other')">
+                  <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg>
+                  Analyse with AI
+                </button>
+                <div class="ai-result manual-meal-result" id="foodResult-other" style="display:none"></div>
+              </div>
             </div>
 
             <!-- Today's meals breakdown -->
             <div class="daily-meals-summary">
-              <div class="daily-meal-row">
+              <div class="daily-meal-row" id="mealSummaryRow-breakfast" style="display:none">
                 <span class="daily-meal-name">Breakfast</span>
-                <span class="daily-meal-values" id="mealSummary-breakfast">Not logged yet</span>
+                <span class="daily-meal-values" id="mealSummary-breakfast"></span>
               </div>
-              <div class="daily-meal-row">
+              <div class="daily-meal-row" id="mealSummaryRow-lunch" style="display:none">
                 <span class="daily-meal-name">Lunch</span>
-                <span class="daily-meal-values" id="mealSummary-lunch">Not logged yet</span>
+                <span class="daily-meal-values" id="mealSummary-lunch"></span>
               </div>
-              <div class="daily-meal-row">
+              <div class="daily-meal-row" id="mealSummaryRow-dinner" style="display:none">
                 <span class="daily-meal-name">Dinner</span>
-                <span class="daily-meal-values" id="mealSummary-dinner">Not logged yet</span>
+                <span class="daily-meal-values" id="mealSummary-dinner"></span>
               </div>
-              <div class="daily-meal-row">
+              <div class="daily-meal-row" id="mealSummaryRow-other" style="display:none">
                 <span class="daily-meal-name">Other</span>
-                <span class="daily-meal-values" id="mealSummary-other">Not logged yet</span>
+                <span class="daily-meal-values" id="mealSummary-other"></span>
               </div>
               <div class="daily-meal-row daily-meal-row--total">
                 <span class="daily-meal-name">Today's total</span>
@@ -894,10 +931,18 @@
                       <div class="coach-topbar-sub"><span class="coach-online-dot"></span>Ready to help</div>
                     </div>
                   </div>
-                  <button class="coach-clear-btn" type="button" onclick="clearCoachChat()" title="Clear chat">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-                  </button>
+                  <div class="coach-chat-topbar-actions">
+                    <button class="coach-history-toggle" id="coachHistoryToggle" type="button" onclick="toggleCoachHistory()" title="Past conversations">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 3"/></svg>
+                      History
+                    </button>
+                    <button class="coach-clear-btn" type="button" onclick="clearCoachChat()" title="Clear chat">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                    </button>
+                  </div>
                 </div>
+
+                <div class="coach-chat-history" id="coachChatHistory" style="display:none;"></div>
 
                 <div class="coach-chat-messages" id="coachChatMessages">
                   <div class="coach-chat-empty">
@@ -921,6 +966,30 @@
                 </form>
               </div>
 
+            </div>
+          </div>
+
+          <div class="view" id="history">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Your logbook</p>
+                <h2>Saved rides, sleep &amp; nutrition</h2>
+              </div>
+            </div>
+
+            <div class="history-section">
+              <h3>Rides</h3>
+              <div class="history-list" id="historyRides"><p class="history-empty">No rides logged yet.</p></div>
+            </div>
+
+            <div class="history-section">
+              <h3>Sleep</h3>
+              <div class="history-list" id="historySleep"><p class="history-empty">No sleep records logged yet.</p></div>
+            </div>
+
+            <div class="history-section">
+              <h3>Nutrition</h3>
+              <div class="history-list" id="historyNutrition"><p class="history-empty">No meals logged yet.</p></div>
             </div>
           </div>
         </div>

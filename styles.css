@@ -504,6 +504,74 @@ h2 {
   display: block;
 }
 
+.history-section {
+  margin-bottom: 22px;
+}
+
+.history-section h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+}
+
+.history-list {
+  display: grid;
+  gap: 8px;
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #faf8f6;
+}
+
+.history-item-main {
+  display: grid;
+  gap: 3px;
+}
+
+.history-item-main strong {
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.history-item-main span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.history-delete {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.history-delete:hover {
+  border-color: #e9c9ad;
+  color: var(--accent-dark);
+}
+
+.history-empty {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
 .control-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -535,6 +603,9 @@ h2 {
 }
 
 .meal-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 6px 14px;
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -551,10 +622,35 @@ h2 {
   color: var(--accent);
 }
 
-.meal-pill.active {
+.meal-pill:has(.meal-type-radio:checked) {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+}
+
+.meal-type-radio {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  flex-shrink: 0;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.meal-pill:hover .meal-type-radio {
+  border-color: var(--accent);
+}
+
+.meal-type-radio:checked {
+  background-color: #fff;
+  border-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23ff5a1f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='3.5 8.5 6.5 11.5 12.5 4.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 10px 10px;
 }
 
 /* ── Nutrition input tabs ──────────────────────────────── */
@@ -609,16 +705,37 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #faf8f6;
+  transition: border-color 0.15s;
+}
+
+.manual-food-entry.logged {
+  border-color: #15803d;
 }
 
 .manual-food-label {
-  font-size: 0.8rem;
-  color: var(--muted);
-  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--ink);
+  font-weight: 700;
 }
 
-#foodTextInput {
+.manual-food-logged-badge {
+  display: none;
+  margin-left: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.manual-food-entry.logged .manual-food-logged-badge {
+  display: inline;
+}
+
+.manual-food-entry textarea {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--line);
@@ -628,11 +745,11 @@ h2 {
   font-size: 0.92rem;
   line-height: 1.5;
   resize: vertical;
-  min-height: 90px;
+  min-height: 80px;
   transition: border-color 0.15s;
 }
 
-#foodTextInput:focus {
+.manual-food-entry textarea:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(255,90,31,0.12);
@@ -663,16 +780,6 @@ h2 {
   fill: #fff;
   stroke: none;
   flex-shrink: 0;
-}
-
-/* ── Meal grid ─────────────────────────────────────────── */
-
-.meal-grid label {
-  display: block;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #faf8f6;
 }
 
 .control span {
@@ -759,17 +866,8 @@ input[type="checkbox"] {
   line-height: 1.5;
 }
 
-.meal-pill {
-  position: relative;
-  padding-right: 26px;
-}
-
 .meal-pill-check {
   display: none;
-  position: absolute;
-  right: 9px;
-  top: 50%;
-  transform: translateY(-50%);
   font-size: 0.72rem;
   font-weight: 800;
   color: #15803d;
@@ -783,7 +881,7 @@ input[type="checkbox"] {
   border-color: #15803d;
 }
 
-.meal-pill.active.logged .meal-pill-check {
+.meal-pill:has(.meal-type-radio:checked).logged .meal-pill-check {
   color: #fff;
 }
 
@@ -926,8 +1024,7 @@ input[type="checkbox"] {
   background: var(--accent);
 }
 
-.protocol-list,
-.meal-grid {
+.protocol-list {
   display: grid;
   gap: 10px;
 }
@@ -943,10 +1040,6 @@ input[type="checkbox"] {
 
 .sleep-window strong {
   font-size: 1.7rem;
-}
-
-.meal-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .fuel-targets {
@@ -1000,6 +1093,7 @@ input[type="checkbox"] {
   font-weight: 700;
   color: var(--accent-dark);
   letter-spacing: -0.2px;
+  flex-shrink: 0;
 }
 
 .cr-nav-mark {
@@ -1019,6 +1113,9 @@ input[type="checkbox"] {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  flex: 1 1 auto;
+  justify-content: flex-end;
 }
 
 .cr-signin-btn {
@@ -1049,12 +1146,17 @@ input[type="checkbox"] {
 .cr-signup-btn:hover { background: var(--accent-dark); }
 
 .nav-user {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-size: 0.85rem;
   color: var(--muted);
   font-weight: 500;
 }
 
 .nav-logout {
+  flex-shrink: 0;
   padding: 6px 13px;
   border: 1px solid var(--line);
   border-radius: 7px;
@@ -1421,22 +1523,42 @@ input[type="checkbox"] {
     position: static;
     height: auto;
     flex-direction: row;
-    align-items: center;
-    gap: 14px;
-    overflow-x: auto;
+    align-items: stretch;
+    gap: 0;
+    padding: 6px 6px;
+    overflow-x: visible;
+  }
+
+  .sidebar .brand {
+    display: none;
+  }
+
+  .sidebar-footer {
+    display: none;
   }
 
   .nav {
     display: flex;
+    flex: 1;
+    width: 100%;
+    gap: 2px;
   }
 
   .nav-item {
-    white-space: nowrap;
+    flex: 1 1 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 2px;
+    font-size: 0.68rem;
+    line-height: 1.15;
+    text-align: center;
+    white-space: normal;
   }
 
-  .sidebar-footer {
-    min-width: 180px;
-    margin: 0 0 0 auto;
+  .nav-item svg {
+    width: 18px;
+    height: 18px;
   }
 
   .top-grid,
@@ -1463,15 +1585,6 @@ input[type="checkbox"] {
     padding: 12px;
   }
 
-  .sidebar {
-    padding: 14px 12px;
-  }
-
-  .brand span,
-  .sidebar-footer {
-    display: none;
-  }
-
   .hero {
     min-height: 250px;
   }
@@ -1484,13 +1597,16 @@ input[type="checkbox"] {
   .ride-plan,
   .ftp-panel,
   .ftp-zones,
-  .fuel-targets,
   .sleep-window,
   .upload-panel,
   .photo-panel,
   .food-preview {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .ftp-score {
+    flex: none;
   }
 
   .upload-button {
@@ -1502,8 +1618,7 @@ input[type="checkbox"] {
     height: 106px;
   }
 
-  .control-grid,
-  .meal-grid {
+  .control-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2628,6 +2743,37 @@ input[type="checkbox"] {
 .coach-clear-btn:hover { color: #993C1D; border-color: #f5c6b8; }
 .coach-clear-btn svg { width: 15px; height: 15px; }
 
+.coach-chat-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coach-history-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 7px 11px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-family: inherit;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.coach-history-toggle svg { width: 15px; height: 15px; }
+
+.coach-history-toggle:hover { color: var(--accent-dark); border-color: #e9c9ad; }
+
+.coach-history-toggle.active {
+  color: var(--accent-dark);
+  border-color: var(--accent);
+  background: #fdf0e6;
+}
+
 .coach-suggested-row {
   display: flex;
   gap: 8px;
@@ -2757,6 +2903,36 @@ input[type="checkbox"] {
 }
 
 .coach-msg-avatar svg { width: 15px; height: 15px; }
+
+.coach-msg-time {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.coach-chat-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fafcfa;
+}
+
+.coach-history-date {
+  align-self: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 14px;
+  margin: 4px 0;
+}
 
 .coach-typing {
   display: flex;
