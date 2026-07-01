@@ -238,10 +238,13 @@ main {
 
 .score-ring {
   flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 118px;
-  height: 118px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   background: conic-gradient(var(--accent) calc(var(--score) * 1%), #ececea 0);
   position: relative;
@@ -250,7 +253,7 @@ main {
 .score-ring::after {
   content: "";
   position: absolute;
-  inset: 10px;
+  inset: 14px;
   border-radius: 50%;
   background: white;
 }
@@ -261,32 +264,26 @@ main {
   font-weight: 800;
 }
 
-.score-ring-wrap {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
 .score-ring-label {
+  z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 4px;
+  padding: 4px 10px;
   border-radius: 999px;
   background: var(--accent-dark);
   color: #fff;
   font-weight: 700;
-  font-size: 0.7rem;
-  letter-spacing: 0.04em;
+  font-size: 0.56rem;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
+  white-space: nowrap;
   box-shadow: 0 4px 10px rgba(199,62,15,0.25);
 }
 
 .score-ring-label svg {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   stroke: currentColor;
   fill: none;
   stroke-width: 2.4;
@@ -1683,8 +1680,18 @@ input[type="checkbox"] {
   }
 
   .score-ring {
-    width: 106px;
-    height: 106px;
+    width: 150px;
+    height: 150px;
+    gap: 4px;
+  }
+
+  .score-ring span {
+    font-size: 1.7rem;
+  }
+
+  .score-ring-label {
+    padding: 3px 8px;
+    font-size: 0.5rem;
   }
 
   .control-grid {
