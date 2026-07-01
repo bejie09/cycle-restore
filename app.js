@@ -964,15 +964,17 @@ async function applySwimEstimate(file, text) {
   });
 }
 
-async function applySleepEstimate(file, text, headerOverride) {
+async function applySleepEstimate(file, text, headerOverride, manualOverrides) {
   els.sleepResult.classList.add("analyzing");
   const fallback = estimateSleep(file, text);
   const ai = await analyzeWithAI("sleep", file, text);
   els.sleepResult.classList.remove("analyzing");
 
-  const duration  = ai?.duration_hours      ?? fallback.duration;
-  const deep      = ai?.deep_sleep_hours    ?? fallback.deep;
-  const rem       = ai?.rem_hours           ?? fallback.rem;
+  // Manual entries are ground truth for duration/deep/rem — AI only supplies
+  // the quality estimate and qualitative feedback, never overrides typed numbers.
+  const duration  = manualOverrides?.duration ?? (ai?.duration_hours   ?? fallback.duration);
+  const deep      = manualOverrides?.deep     ?? (ai?.deep_sleep_hours ?? fallback.deep);
+  const rem       = manualOverrides?.rem      ?? (ai?.rem_hours        ?? fallback.rem);
   const quality   = ai?.sleep_quality_pct   ?? fallback.quality;
   const recovNote = ai?.recovery_note;
   const coachTip  = ai?.coach_tip;
@@ -1016,7 +1018,7 @@ async function analyzeSleepText() {
   const btn = document.getElementById("analyzeSleepBtn");
   btn.disabled = true;
   btn.textContent = "Recording…";
-  await applySleepEstimate({ name: "Manual entry", size: 0 }, content, "Manual sleep entry");
+  await applySleepEstimate({ name: "Manual entry", size: 0 }, content, "Manual sleep entry", { duration: total, deep, rem });
   btn.disabled = false;
   btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg> Enter`;
 }
