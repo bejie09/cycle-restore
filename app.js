@@ -58,6 +58,7 @@ const els = {
   fluidTargetLabel: document.querySelector("#fluidTargetLabel"),
   calorieTargetLabel: document.querySelector("#calorieTargetLabel"),
   rideResult: document.querySelector("#rideResult"),
+  runResult: document.querySelector("#runResult"),
   sleepResult: document.querySelector("#sleepResult"),
   foodResult: document.querySelector("#foodResult"),
   foodPreview: document.querySelector("#foodPreview"),
@@ -70,6 +71,7 @@ const els = {
   },
   dailyMealTotal: document.querySelector("#mealSummary-total"),
   historyRides: document.querySelector("#historyRides"),
+  historyRuns: document.querySelector("#historyRuns"),
   historySleep: document.querySelector("#historySleep"),
   historyNutrition: document.querySelector("#historyNutrition")
 };
@@ -103,8 +105,8 @@ const labels = {
 let currentUser = null;
 let selectedMealType = "breakfast";
 let currentNutritionTab = "photo";
-let historyData = { rides: [], sleep: [], nutrition: [], coach: [] };
-const HISTORY_KEYS = { ride: "rides", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
+let historyData = { rides: [], runs: [], sleep: [], nutrition: [], coach: [] };
+const HISTORY_KEYS = { ride: "rides", run: "runs", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -160,6 +162,30 @@ function estimateRide(file, text = "") {
     null;
   const load = clamp(Math.round(minutes * 0.55 + distance * 0.5 + calories / 70), 25, 170);
   return { distance, minutes, calories, load, ftpEstimate };
+}
+
+function formatPace(paceMinPerKm) {
+  if (!paceMinPerKm || !isFinite(paceMinPerKm)) return "—";
+  const mins = Math.floor(paceMinPerKm);
+  const secs = Math.round((paceMinPerKm - mins) * 60);
+  return `${mins}:${String(secs).padStart(2, "0")}/km`;
+}
+
+function estimateRun(file, text = "") {
+  const lower = `${file.name} ${text}`.toLowerCase();
+  const distance =
+    numberFromText(lower, [/distance[^0-9]*(\d+(?:\.\d+)?)/, /(\d+(?:\.\d+)?)\s?km/]) ||
+    clamp(3 + fileSizeMb(file) * 1.1, 2, 21);
+  const minutes =
+    numberFromText(lower, [/duration[^0-9]*(\d+(?:\.\d+)?)/, /moving_time[^0-9]*(\d+(?:\.\d+)?)/]) ||
+    clamp(Math.round(distance * 5.8), 12, 150);
+  const calories =
+    numberFromText(lower, [/calories[^0-9]*(\d+(?:\.\d+)?)/, /kcal[^0-9]*(\d+(?:\.\d+)?)/]) ||
+    Math.round(distance * 62 + minutes * 1.5);
+  const pace = minutes / Math.max(distance, 0.1);
+  const heartRate = numberFromText(lower, [/heart[_ -]?rate[^0-9]*(\d+(?:\.\d+)?)/, /\bhr[^0-9]*(\d+(?:\.\d+)?)/, /bpm[^0-9]*(\d+(?:\.\d+)?)/]);
+  const load = clamp(Math.round(minutes * 0.6 + distance * 3.2 + calories / 60), 20, 180);
+  return { distance, minutes, calories, pace, heartRate, load };
 }
 
 function estimateSleep(file, text = "") {
@@ -396,6 +422,13 @@ function applyProfile(profile) {
   syncInputs();
 }
 
+function switchRidesTab(tab) {
+  document.getElementById("rides-cycling-panel").style.display = tab === "cycling" ? "" : "none";
+  document.getElementById("rides-running-panel").style.display = tab === "running" ? "" : "none";
+  document.getElementById("rides-tab-cycling").classList.toggle("active", tab === "cycling");
+  document.getElementById("rides-tab-running").classList.toggle("active", tab === "running");
+}
+
 function switchSleepTab(tab) {
   document.getElementById("sleep-upload-panel").style.display = tab === "upload" ? "" : "none";
   document.getElementById("sleep-manual-panel").style.display = tab === "manual" ? "" : "none";
@@ -487,7 +520,7 @@ function doSignOut() {
   document.getElementById("login-password").value = "";
   showAuthForm("register");
   applyProfile(null);
-  historyData = { rides: [], sleep: [], nutrition: [], coach: [] };
+  historyData = { rides: [], runs: [], sleep: [], nutrition: [], coach: [] };
   renderHistory();
   renderCoachHistory();
 }
@@ -643,6 +676,50 @@ async function applyRideEstimate(file, text) {
   });
 }
 
+async function applyRunEstimate(file, text) {
+  els.runResult.classList.add("analyzing");
+  const fallback = estimateRun(file, text);
+  const ai = await analyzeWithAI("run", file, text);
+  els.runResult.classList.remove("analyzing");
+
+  const distance   = ai?.distance_km    ?? fallback.distance;
+  const minutes    = ai?.duration_min   ?? fallback.minutes;
+  const calories   = ai?.calories       ?? fallback.calories;
+  const pace       = ai?.pace_min_km    ?? fallback.pace;
+  const heartRate  = ai?.avg_heart_rate ?? fallback.heartRate;
+  const load       = ai?.training_load  ?? fallback.load;
+  const sessionTitle = ai?.session_title;
+  const sessionNote  = ai?.session_note;
+  const coachTip     = ai?.coach_tip;
+
+  state.trainingLoad = clamp(Math.round(load), 5, 200);
+  inputs.trainingLoad.value = state.trainingLoad;
+  state.hydration = clamp(2.4 + minutes / 130, 2.4, 4.2);
+
+  const label = ai ? "AI" : "Estimated";
+  els.runResult.innerHTML = `
+    <span>${summarizeFile(file)}</span>
+    <strong>${label}: ${Math.round(distance * 10) / 10} km · ${Math.round(minutes)} min · ${formatPace(pace)} · ${Math.round(calories)} kcal${heartRate ? ` · ${Math.round(heartRate)} bpm` : ""}</strong>
+    ${sessionTitle ? `<em>${escapeHtml(sessionTitle)} — ${escapeHtml(sessionNote || "")}</em>` : ""}
+    ${coachTip ? `<small>${escapeHtml(coachTip)}</small>` : ""}
+  `;
+  render();
+
+  saveHistoryRecord("run", {
+    distance: Math.round(distance * 10) / 10,
+    minutes: Math.round(minutes),
+    calories: Math.round(calories),
+    pace: Math.round(pace * 100) / 100,
+    heartRate: heartRate ? Math.round(heartRate) : null,
+    load: state.trainingLoad,
+    sessionTitle: sessionTitle || null,
+    sessionNote: sessionNote || null,
+    coachTip: coachTip || null,
+    filename: file.name,
+    source: ai ? "ai" : "estimated"
+  });
+}
+
 async function applySleepEstimate(file, text, headerOverride) {
   els.sleepResult.classList.add("analyzing");
   const fallback = estimateSleep(file, text);
@@ -753,6 +830,7 @@ async function fetchHistory() {
     if (res.ok) {
       historyData = {
         rides: data.rides || [],
+        runs: data.runs || [],
         sleep: data.sleep || [],
         nutrition: data.nutrition || [],
         coach: data.coach || []
@@ -818,6 +896,9 @@ function renderHistoryList(container, type, records, emptyText, formatItem) {
 function renderHistory() {
   renderHistoryList(els.historyRides, "ride", historyData.rides, "No rides logged yet.", (r) =>
     `${r.distance} km · ${r.minutes} min · ${r.calories} kcal · ${r.tss} TSS${r.ftpWatts ? ` · ${r.ftpWatts} W FTP` : ""}`
+  );
+  renderHistoryList(els.historyRuns, "run", historyData.runs, "No runs logged yet.", (r) =>
+    `${r.distance} km · ${r.minutes} min · ${formatPace(r.pace)} · ${r.calories} kcal${r.heartRate ? ` · ${r.heartRate} bpm` : ""}`
   );
   renderHistoryList(els.historySleep, "sleep", historyData.sleep, "No sleep records logged yet.", (r) =>
     `${formatSleep(r.duration)} sleep · ${formatSleep(r.deep)} deep · ${formatSleep(r.rem)} REM · ${r.quality}% quality`
@@ -933,6 +1014,31 @@ document.querySelector("#rideUpload").addEventListener("change", async (event) =
     readUploadedText(file, async (text) => {
       els.rideResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your ride data…</strong>`;
       await applyRideEstimate(file, text);
+    });
+  }
+});
+
+document.querySelector("#runUpload").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const preview = document.querySelector("#runPhotoPreview");
+  if (isImageFile(file)) {
+    els.runResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your run screenshot…</strong>`;
+    const reader = new FileReader();
+    reader.addEventListener("load", async () => {
+      showPhotoPreview(preview, reader.result, file.name);
+      await applyRunEstimate(file, "");
+    });
+    reader.addEventListener("error", async () => {
+      showPhotoPreview(preview, null, file.name);
+      await applyRunEstimate(file, "");
+    });
+    reader.readAsDataURL(file);
+  } else {
+    els.runResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>Sending to AI for analysis…</strong>`;
+    readUploadedText(file, async (text) => {
+      els.runResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your run data…</strong>`;
+      await applyRunEstimate(file, text);
     });
   }
 });

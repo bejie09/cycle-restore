@@ -34,6 +34,9 @@ function buildPrompt(type, filename, content) {
   if (type === "ride") {
     return `/no_think\nYou are a cycling data analyst. Analyze this ride data and return ONLY a single-line JSON object with no markdown, no explanation, no extra text.\nFilename: ${filename}\nContent:\n${snip}\n\nReturn exactly this structure (use null if unknown):\n{"distance_km":number,"duration_min":number,"calories":number,"tss":number,"avg_power_watts":number,"ftp_watts":number,"session_title":"string","session_note":"string","coach_tip":"string"}`;
   }
+  if (type === "run") {
+    return `/no_think\nYou are a running coach and performance analyst. Analyze this run and return ONLY a single-line JSON object with no markdown, no explanation, no extra text.\nFilename: ${filename}\nContent:\n${snip}\n\nReturn exactly this structure. Use null only for a field when it truly cannot be determined from the content. Always fill in session_note and coach_tip with one short sentence each, based on whatever data is available:\n{"distance_km":number,"duration_min":number,"calories":number,"pace_min_km":number,"avg_heart_rate":number,"training_load":number,"session_title":"string","session_note":"string 1 sentence describing the run","coach_tip":"string 1 sentence of running-specific advice"}`;
+  }
   if (type === "sleep") {
     return `/no_think\nYou are a sleep science analyst advising a cyclist. Analyze this sleep record and return ONLY a single-line JSON object with no markdown, no explanation, no extra text.\nFilename: ${filename}\nContent:\n${snip}\n\nReturn exactly this structure. Use null only for duration_hours, deep_sleep_hours, rem_hours, light_sleep_hours, sleep_quality_pct, bedtime, and wake_time when that specific value truly cannot be determined from the content. Always fill in recovery_note and coach_tip with one short sentence each, based on whatever sleep data is available, even if other fields are null:\n{"duration_hours":number,"deep_sleep_hours":number,"rem_hours":number,"light_sleep_hours":number,"sleep_quality_pct":number,"bedtime":"string","wake_time":"string","recovery_note":"string 1 sentence on this sleep's recovery quality","coach_tip":"string 1 sentence of cycling-specific advice based on this sleep"}`;
   }
@@ -100,11 +103,12 @@ function userByToken(db, token) {
 
 // ---- Ride / sleep / nutrition history ---------------------------------------
 
-const HISTORY_TYPES = { ride: "rides", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
+const HISTORY_TYPES = { ride: "rides", run: "runs", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
 
 function ensureHistory(user) {
-  if (!user.history) user.history = { rides: [], sleep: [], nutrition: [], coach: [] };
+  if (!user.history) user.history = { rides: [], runs: [], sleep: [], nutrition: [], coach: [] };
   if (!user.history.coach) user.history.coach = [];
+  if (!user.history.runs) user.history.runs = [];
   return user.history;
 }
 
@@ -402,7 +406,7 @@ http.createServer(async (req, res) => {
     const user = userByToken(db, getToken(req));
     if (!user) return json(res, 401, { error: "Unauthorized" });
     const { type, content, filename } = await parseBody(req);
-    if (!type || !["ride","sleep","nutrition"].includes(type))
+    if (!type || !["ride","run","sleep","nutrition"].includes(type))
       return json(res, 400, { error: "Invalid type" });
     const prompt = buildPrompt(type, filename || "file", content || "");
     try {
@@ -422,6 +426,7 @@ http.createServer(async (req, res) => {
     const history = ensureHistory(user);
     return json(res, 200, {
       rides: [...history.rides].sort((a, b) => b.timestamp - a.timestamp),
+      runs: [...history.runs].sort((a, b) => b.timestamp - a.timestamp),
       sleep: [...history.sleep].sort((a, b) => b.timestamp - a.timestamp),
       nutrition: [...history.nutrition].sort((a, b) => b.timestamp - a.timestamp),
       coach: [...history.coach].sort((a, b) => b.timestamp - a.timestamp)

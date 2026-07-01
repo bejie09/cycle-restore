@@ -609,26 +609,64 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Ride builder</p>
-                <h2>Today's cycling plan</h2>
+                <h2>Today's training plan</h2>
               </div>
             </div>
-            <div class="upload-panel">
-              <div>
-                <p class="eyebrow">Ride analysis</p>
-                <h3>Upload your ride</h3>
-                <p>Upload a ride file <strong>(FIT, GPX, TCX, CSV)</strong> from your Garmin or cycling app — or pick a screenshot from your photo gallery showing your ride summary. AI reads both automatically.</p>
+
+            <!-- Activity type tabs -->
+            <div class="nutrition-tabs">
+              <button class="nutrition-tab active" id="rides-tab-cycling" onclick="switchRidesTab('cycling')">
+                <svg viewBox="0 0 24 24"><path d="M6 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm12 0a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM8.2 9h4.1l2.9 4.2M10.5 5h2.7l-2.9 8.2M7.5 13h7.7M15 5h3" /></svg>
+                Cycling
+              </button>
+              <button class="nutrition-tab" id="rides-tab-running" onclick="switchRidesTab('running')">
+                <svg viewBox="0 0 24 24"><path d="M13 4a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM4 21l4.5-4 2.5-3-1-4 4 3 4-1 3 4M9 14l2-5 4 1"/></svg>
+                Running
+              </button>
+            </div>
+
+            <!-- Cycling panel -->
+            <div id="rides-cycling-panel">
+              <div class="upload-panel">
+                <div>
+                  <p class="eyebrow">Ride analysis</p>
+                  <h3>Upload your ride</h3>
+                  <p>Upload a ride file <strong>(FIT, GPX, TCX, CSV)</strong> from your Garmin or cycling app — or pick a screenshot from your photo gallery showing your ride summary. AI reads both automatically.</p>
+                </div>
+                <label class="upload-button">
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+                  Upload ride
+                  <input id="rideUpload" type="file" accept=".fit,.tcx,.gpx,.csv,.json,image/*,.jpg,.jpeg,.png,.webp,.heic">
+                </label>
               </div>
-              <label class="upload-button">
-                <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
-                Upload ride
-                <input id="rideUpload" type="file" accept=".fit,.tcx,.gpx,.csv,.json,image/*,.jpg,.jpeg,.png,.webp,.heic">
-              </label>
+              <div class="ai-result" id="rideResult">
+                <span>No ride uploaded</span>
+                <strong>AI ride load estimate will appear here.</strong>
+              </div>
+              <div class="food-preview" id="ridePhotoPreview" aria-live="polite"></div>
             </div>
-            <div class="ai-result" id="rideResult">
-              <span>No ride uploaded</span>
-              <strong>AI ride load estimate will appear here.</strong>
+
+            <!-- Running panel -->
+            <div id="rides-running-panel" style="display:none">
+              <div class="upload-panel">
+                <div>
+                  <p class="eyebrow">Run analysis</p>
+                  <h3>Upload your run</h3>
+                  <p>Upload a run file <strong>(FIT, GPX, TCX, CSV)</strong> from your Garmin or running app — or pick a screenshot from your photo gallery showing your run summary. AI reads both automatically.</p>
+                </div>
+                <label class="upload-button">
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+                  Upload run
+                  <input id="runUpload" type="file" accept=".fit,.tcx,.gpx,.csv,.json,image/*,.jpg,.jpeg,.png,.webp,.heic">
+                </label>
+              </div>
+              <div class="ai-result" id="runResult">
+                <span>No run uploaded</span>
+                <strong>AI run load estimate will appear here.</strong>
+              </div>
+              <div class="food-preview" id="runPhotoPreview" aria-live="polite"></div>
             </div>
-            <div class="food-preview" id="ridePhotoPreview" aria-live="polite"></div>
+
             <div class="ftp-panel">
               <div class="ftp-score">
                 <span>FTP level</span>
@@ -1020,13 +1058,18 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Your logbook</p>
-                <h2>Saved rides, sleep &amp; nutrition</h2>
+                <h2>Saved rides, runs, sleep &amp; nutrition</h2>
               </div>
             </div>
 
             <div class="history-section">
               <h3>Rides</h3>
               <div class="history-list" id="historyRides"><p class="history-empty">No rides logged yet.</p></div>
+            </div>
+
+            <div class="history-section">
+              <h3>Runs</h3>
+              <div class="history-list" id="historyRuns"><p class="history-empty">No runs logged yet.</p></div>
             </div>
 
             <div class="history-section">
