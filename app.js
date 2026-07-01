@@ -231,7 +231,80 @@ function runningRecommendation(score) {
   };
 }
 
+function formatSwimPaceRange(fastPace, slowPace) {
+  const fmt = (p) => {
+    const mins = Math.floor(p);
+    const secs = Math.round((p - mins) * 60);
+    return `${mins}:${String(secs).padStart(2, "0")}`;
+  };
+  return `${fmt(fastPace)}-${fmt(slowPace)}/100m`;
+}
+
+function swimLevel(pace) {
+  if (!pace) return "Base";
+  if (pace <= 1.17) return "Elite";
+  if (pace <= 1.42) return "Advanced";
+  if (pace <= 1.75) return "Strong";
+  if (pace <= 2.33) return "Developing";
+  return "Base";
+}
+
+function swimmingRecommendation(score) {
+  const recentPace = historyData.swims[0]?.pace || null;
+  const basePace = recentPace || 2.25;
+  if (score >= 82) {
+    return {
+      main: "8 x 100m", detail: `Intervals near ${formatSwimPace(basePace - 0.25)} pace`,
+      warmupMain: "200m", warmupDetail: "Easy swim + drills",
+      cooldownMain: "150m", cooldownDetail: "Easy swim"
+    };
+  }
+  if (score >= 65) {
+    return {
+      main: "20 min", detail: `Steady swim near ${formatSwimPace(basePace)} pace`,
+      warmupMain: "150m", warmupDetail: "Easy swim build-up",
+      cooldownMain: "100m", cooldownDetail: "Easy swim"
+    };
+  }
+  if (score >= 48) {
+    return {
+      main: "15 min", detail: `Easy technique swim near ${formatSwimPace(basePace + 0.3)} pace`,
+      warmupMain: "100m", warmupDetail: "Easy swim",
+      cooldownMain: "100m", cooldownDetail: "Easy swim"
+    };
+  }
+  return {
+    main: "0-15 min", detail: "Optional easy laps or pool walking",
+    warmupMain: "—", warmupDetail: "Not applicable",
+    cooldownMain: "—", cooldownDetail: "Not applicable"
+  };
+}
+
 function renderTrainingPlanPanel(score) {
+  if (currentRidesTab === "swimming") {
+    const recentPace = historyData.swims[0]?.pace || null;
+    const basePace = recentPace || 2.25;
+    const rec = swimmingRecommendation(score);
+
+    els.ftpLevelLabel.textContent = "Pace level";
+    els.ftpLevel.textContent = swimLevel(basePace);
+    els.ftpGap.textContent = recentPace ? "Based on your last logged swim" : "Log a swim to personalize your zones";
+    els.sweetSpotLabel.textContent = "Easy";
+    els.thresholdLabel.textContent = "Tempo";
+    els.vo2Label.textContent = "Interval";
+    els.sweetSpotZone.textContent = formatSwimPaceRange(basePace + 0.25, basePace + 0.5);
+    els.thresholdZone.textContent = formatSwimPaceRange(basePace - 0.08, basePace + 0.08);
+    els.vo2Zone.textContent = formatSwimPaceRange(basePace - 0.4, basePace - 0.2);
+
+    els.warmupDuration.textContent = rec.warmupMain;
+    els.warmupDetail.textContent = rec.warmupDetail;
+    els.mainSet.textContent = rec.main;
+    els.mainSetCopy.textContent = rec.detail;
+    els.cooldownDuration.textContent = rec.cooldownMain;
+    els.cooldownDetail.textContent = rec.cooldownDetail;
+    return;
+  }
+
   if (currentRidesTab === "running") {
     const recentPace = historyData.runs[0]?.pace || null;
     const basePace = recentPace || 6.5;
