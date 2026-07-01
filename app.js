@@ -7,7 +7,10 @@ const DEFAULTS = {
   targetFtp: 270,
   meals: 3,
   hydration: 2.8,
-  aiNutrition: null
+  aiNutrition: null,
+  targetCarbs: 80,
+  targetProtein: 35,
+  targetFluids: 750
 };
 
 const state = { ...DEFAULTS };
@@ -38,9 +41,15 @@ const els = {
   todayBar: document.querySelector("#todayBar"),
   bedtime: document.querySelector("#bedtime"),
   sleepNeed: document.querySelector("#sleepNeed"),
-  carbTarget: document.querySelector("#carbTarget"),
-  proteinTarget: document.querySelector("#proteinTarget"),
-  fluidTarget: document.querySelector("#fluidTarget"),
+  carbActual: document.querySelector("#carbActual"),
+  proteinActual: document.querySelector("#proteinActual"),
+  fluidActual: document.querySelector("#fluidActual"),
+  carbFuelBox: document.querySelector("#carbFuelBox"),
+  proteinFuelBox: document.querySelector("#proteinFuelBox"),
+  fluidFuelBox: document.querySelector("#fluidFuelBox"),
+  carbTargetLabel: document.querySelector("#carbTargetLabel"),
+  proteinTargetLabel: document.querySelector("#proteinTargetLabel"),
+  fluidTargetLabel: document.querySelector("#fluidTargetLabel"),
   rideResult: document.querySelector("#rideResult"),
   sleepResult: document.querySelector("#sleepResult"),
   foodResult: document.querySelector("#foodResult"),
@@ -54,7 +63,10 @@ const inputs = {
   trainingLoad: document.querySelector("#trainingLoad"),
   soreness: document.querySelector("#soreness"),
   ftp: document.querySelector("#ftp"),
-  targetFtp: document.querySelector("#targetFtp")
+  targetFtp: document.querySelector("#targetFtp"),
+  targetCarbs: document.querySelector("#targetCarbs"),
+  targetProtein: document.querySelector("#targetProtein"),
+  targetFluids: document.querySelector("#targetFluids")
 };
 
 const labels = {
@@ -63,7 +75,10 @@ const labels = {
   trainingLoad: document.querySelector("#loadValue"),
   soreness: document.querySelector("#sorenessValue"),
   ftp: document.querySelector("#ftpValue"),
-  targetFtp: document.querySelector("#targetFtpValue")
+  targetFtp: document.querySelector("#targetFtpValue"),
+  targetCarbs: document.querySelector("#targetCarbsValue"),
+  targetProtein: document.querySelector("#targetProteinValue"),
+  targetFluids: document.querySelector("#targetFluidsValue")
 };
 
 let currentUser = null;
@@ -234,7 +249,15 @@ function buildNotes(score) {
   if (state.meals < 3) {
     notes.push(["warning", "Fuel readiness is incomplete. Add carbs before the ride and protein after."]);
   } else if (state.aiNutrition) {
-    notes.push(["", `AI meal scan estimates ${state.aiNutrition.carbs}g carbs, ${state.aiNutrition.protein}g protein, and ${state.aiNutrition.fluids}ml fluids.`]);
+    const shortfalls = [];
+    if (state.aiNutrition.carbs < state.targetCarbs) shortfalls.push(`carbs (${state.aiNutrition.carbs}g vs ${state.targetCarbs}g/hr target)`);
+    if (state.aiNutrition.protein < state.targetProtein) shortfalls.push(`protein (${state.aiNutrition.protein}g vs ${state.targetProtein}g target)`);
+    if (state.aiNutrition.fluids < state.targetFluids) shortfalls.push(`fluids (${state.aiNutrition.fluids}ml vs ${state.targetFluids}ml/hr target)`);
+    if (shortfalls.length) {
+      notes.push(["alert", `Focus here: you're short on ${shortfalls.join(" and ")}. Close this gap before your next ride.`]);
+    } else {
+      notes.push(["", `AI meal scan estimates ${state.aiNutrition.carbs}g carbs, ${state.aiNutrition.protein}g protein, and ${state.aiNutrition.fluids}ml fluids — all meeting your targets.`]);
+    }
   } else {
     notes.push(["", "Nutrition is close. Add electrolytes if the ride goes beyond 75 minutes."]);
   }
@@ -246,9 +269,9 @@ function updateTargets(score) {
   const weeklyLoad = Math.round(260 + state.trainingLoad * 1.22);
   const fuelPercent = clamp(55 + state.meals * 11, 0, 100);
   const sleepNeed = clamp(7.4 + state.trainingLoad / 190 + state.soreness / 14, 7.5, 9.1);
-  const carbTarget = state.aiNutrition ? state.aiNutrition.carbs : score > 80 ? 82 : score > 64 ? 72 : 45;
-  const proteinTarget = state.aiNutrition ? state.aiNutrition.protein : state.trainingLoad > 95 ? 36 : 32;
-  const fluidTarget = state.aiNutrition ? state.aiNutrition.fluids : state.trainingLoad > 95 ? 850 : 750;
+  const carbActual = state.aiNutrition ? state.aiNutrition.carbs : score > 80 ? 82 : score > 64 ? 72 : 45;
+  const proteinActual = state.aiNutrition ? state.aiNutrition.protein : state.trainingLoad > 95 ? 36 : 32;
+  const fluidActual = state.aiNutrition ? state.aiNutrition.fluids : state.trainingLoad > 95 ? 850 : 750;
 
   els.weeklyLoad.textContent = `${weeklyLoad} TSS`;
   els.loadBar.style.width = `${clamp(weeklyLoad / 6, 20, 100)}%`;
@@ -264,9 +287,17 @@ function updateTargets(score) {
   els.thresholdZone.textContent = formatZone(0.95, 1.05);
   els.vo2Zone.textContent = formatZone(1.06, 1.2);
   els.sleepNeed.textContent = `Aim for ${formatSleep(sleepNeed)} after today's load`;
-  els.carbTarget.textContent = `${carbTarget}g/hr`;
-  els.proteinTarget.textContent = `${proteinTarget}g`;
-  els.fluidTarget.textContent = `${fluidTarget}ml/hr`;
+  els.carbActual.textContent = `${carbActual}g/hr`;
+  els.proteinActual.textContent = `${proteinActual}g`;
+  els.fluidActual.textContent = `${fluidActual}ml/hr`;
+  els.carbTargetLabel.textContent = `Target ${state.targetCarbs}g/hr`;
+  els.proteinTargetLabel.textContent = `Target ${state.targetProtein}g`;
+  els.fluidTargetLabel.textContent = `Target ${state.targetFluids}ml/hr`;
+
+  const nutritionLogged = Boolean(state.aiNutrition);
+  els.carbFuelBox.classList.toggle("under-target", nutritionLogged && carbActual < state.targetCarbs);
+  els.proteinFuelBox.classList.toggle("under-target", nutritionLogged && proteinActual < state.targetProtein);
+  els.fluidFuelBox.classList.toggle("under-target", nutritionLogged && fluidActual < state.targetFluids);
 
   const wakeHour = 6.0;
   let bedtimeHour = wakeHour + 24 - sleepNeed;
@@ -582,6 +613,9 @@ function render() {
   labels.soreness.textContent = `${state.soreness}/10`;
   labels.ftp.textContent = `${state.ftp} W`;
   labels.targetFtp.textContent = `${state.targetFtp} W`;
+  labels.targetCarbs.textContent = `${state.targetCarbs}g/hr`;
+  labels.targetProtein.textContent = `${state.targetProtein}g`;
+  labels.targetFluids.textContent = `${state.targetFluids}ml/hr`;
 
   els.scoreRing.style.setProperty("--score", score);
   els.readinessScore.textContent = score;

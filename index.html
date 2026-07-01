@@ -705,6 +705,28 @@
               </div>
             </div>
 
+            <!-- Nutrition targets -->
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow">Your targets</p>
+                <h2>Set your daily nutrition targets</h2>
+              </div>
+            </div>
+            <div class="control-grid nutrition-target-grid">
+              <label class="control">
+                <span>Carb target <strong id="targetCarbsValue">80g/hr</strong></span>
+                <input id="targetCarbs" type="range" min="40" max="140" value="80" step="5">
+              </label>
+              <label class="control">
+                <span>Protein target <strong id="targetProteinValue">35g</strong></span>
+                <input id="targetProtein" type="range" min="15" max="60" value="35" step="1">
+              </label>
+              <label class="control">
+                <span>Fluid target <strong id="targetFluidsValue">750ml/hr</strong></span>
+                <input id="targetFluids" type="range" min="400" max="1200" value="750" step="25">
+              </label>
+            </div>
+
             <!-- Meal type selector -->
             <div class="meal-type-bar">
               <span class="meal-type-label">Meal type</span>
@@ -768,9 +790,24 @@
               <label><input class="meal" type="checkbox" checked> Recovery snack ready</label>
             </div>
             <div class="fuel-targets">
-              <div><span>Carbs</span><strong id="carbTarget">72g/hr</strong></div>
-              <div><span>Protein</span><strong id="proteinTarget">32g</strong></div>
-              <div><span>Fluids</span><strong id="fluidTarget">750ml/hr</strong></div>
+              <div id="carbFuelBox">
+                <span>Carbs</span>
+                <strong id="carbActual">72g/hr</strong>
+                <small id="carbTargetLabel">Target 80g/hr</small>
+                <em class="fuel-flag">⚠ Focus here</em>
+              </div>
+              <div id="proteinFuelBox">
+                <span>Protein</span>
+                <strong id="proteinActual">32g</strong>
+                <small id="proteinTargetLabel">Target 35g</small>
+                <em class="fuel-flag">⚠ Focus here</em>
+              </div>
+              <div id="fluidFuelBox">
+                <span>Fluids</span>
+                <strong id="fluidActual">750ml/hr</strong>
+                <small id="fluidTargetLabel">Target 750ml/hr</small>
+                <em class="fuel-flag">⚠ Focus here</em>
+              </div>
             </div>
           </div>
 

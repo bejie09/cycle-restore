@@ -726,6 +726,38 @@ input[type="checkbox"] {
   font-size: 1.25rem;
 }
 
+.nutrition-target-grid {
+  margin-bottom: 20px;
+}
+
+.fuel-targets small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.fuel-flag {
+  display: none;
+  margin-top: 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-style: normal;
+  color: var(--red);
+}
+
+.fuel-targets > div.under-target {
+  border-color: var(--red);
+  background: #fdf2f2;
+}
+
+.fuel-targets > div.under-target strong {
+  color: var(--red);
+}
+
+.fuel-targets > div.under-target .fuel-flag {
+  display: block;
+}
+
 .ftp-panel {
   justify-content: space-between;
   gap: 16px;
