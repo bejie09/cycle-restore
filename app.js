@@ -1107,13 +1107,6 @@ function renderCoachMessages() {
   container.scrollTop = container.scrollHeight;
 }
 
-function clearCoachChat() {
-  coachMessages.length = 0;
-  renderCoachMessages();
-  const row = document.getElementById("coachSuggestedRow");
-  if (row) row.style.display = "";
-}
-
 let showingCoachHistory = false;
 
 function renderCoachHistory() {

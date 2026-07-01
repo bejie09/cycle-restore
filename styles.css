@@ -2728,21 +2728,6 @@ input[type="checkbox"] {
   margin-top: 1px;
 }
 
-.coach-clear-btn {
-  background: none;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  cursor: pointer;
-  padding: 7px 9px;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  transition: color 0.15s, border-color 0.15s;
-}
-
-.coach-clear-btn:hover { color: #993C1D; border-color: #f5c6b8; }
-.coach-clear-btn svg { width: 15px; height: 15px; }
-
 .coach-chat-topbar-actions {
   display: flex;
   align-items: center;
