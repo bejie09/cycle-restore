@@ -803,7 +803,7 @@ h2 {
 
 .manual-sleep-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
 }
 
@@ -837,7 +837,7 @@ h2 {
 }
 
 @media (max-width: 640px) {
-  .manual-sleep-grid { grid-template-columns: repeat(2, 1fr); }
+  .manual-sleep-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 .analyze-food-btn svg {

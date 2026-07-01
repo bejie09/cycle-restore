@@ -832,20 +832,21 @@ async function applySleepEstimate(file, text, headerOverride) {
 }
 
 async function analyzeSleepText() {
+  const totalInput = parseFloat(document.getElementById("sleepTotalInput").value) || 0;
   const deep   = parseFloat(document.getElementById("sleepDeepInput").value) || 0;
   const light  = parseFloat(document.getElementById("sleepLightInput").value) || 0;
   const rem    = parseFloat(document.getElementById("sleepRemInput").value) || 0;
   const awake  = parseFloat(document.getElementById("sleepAwakeInput").value) || 0;
-  if (!deep && !light && !rem && !awake) return;
-  const total = deep + light + rem;
+  if (!totalInput && !deep && !light && !rem && !awake) return;
+  const total = totalInput || (deep + light + rem);
   const content = `Total sleep duration: ${total} hours\nDeep sleep: ${deep} hours\nLight sleep: ${light} hours\nREM sleep: ${rem} hours\nAwake time: ${awake} hours`;
 
   const btn = document.getElementById("analyzeSleepBtn");
   btn.disabled = true;
-  btn.textContent = "Analysing…";
+  btn.textContent = "Recording…";
   await applySleepEstimate({ name: "Manual entry", size: 0 }, content, "Manual sleep entry");
   btn.disabled = false;
-  btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg> Analyse with AI`;
+  btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14H11v-2h2zm0-4H11V7h2z"/></svg> Enter`;
 }
 
 async function applyFoodEstimate(file, text, mealType) {
