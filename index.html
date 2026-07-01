@@ -305,7 +305,7 @@
       </div>
       <div class="lp-guide-card">
         <h3>Uploading a Ride File</h3>
-        <p>After completing a ride or run, go to the Training tab. Upload the .FIT, .TCX, .GPX, or .CSV file exported from Garmin Connect, Strava, or your head unit. AI extracts TSS, average power, and FTP estimate for rides, or pace and heart rate for runs. Alternatively tap 'Take / upload photo' and snap your Garmin screen — the AI reads the numbers from the image.</p>
+        <p>After completing a ride, run, or swim, go to the Training tab. Upload the .FIT, .TCX, .GPX, or .CSV file exported from Garmin Connect, Strava, or your head unit. AI extracts TSS, average power, and FTP estimate for rides, pace and heart rate for runs, or pace per 100m for swims. Alternatively tap 'Take / upload photo' and snap your Garmin screen — the AI reads the numbers from the image.</p>
       </div>
       <div class="lp-guide-card">
         <h3>Reading Your Readiness Score</h3>
@@ -623,6 +623,10 @@
                 <svg viewBox="0 0 24 24"><path d="M13 4a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM4 21l4.5-4 2.5-3-1-4 4 3 4-1 3 4M9 14l2-5 4 1"/></svg>
                 Running
               </button>
+              <button class="nutrition-tab" id="rides-tab-swimming" onclick="switchRidesTab('swimming')">
+                <svg viewBox="0 0 24 24"><path d="M2 17c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0 3-1.5 4.5 0M2 12c1.5 1.5 3 1.5 4.5 0s3-1.5 4.5 0 3 1.5 4.5 0 3-1.5 4.5 0M8 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0Z"/></svg>
+                Swimming
+              </button>
             </div>
 
             <!-- Cycling panel -->
@@ -665,6 +669,27 @@
                 <strong>AI run load estimate will appear here.</strong>
               </div>
               <div class="food-preview" id="runPhotoPreview" aria-live="polite"></div>
+            </div>
+
+            <!-- Swimming panel -->
+            <div id="rides-swimming-panel" style="display:none">
+              <div class="upload-panel">
+                <div>
+                  <p class="eyebrow">Swim analysis</p>
+                  <h3>Upload your swim</h3>
+                  <p>Upload a swim file <strong>(FIT, GPX, TCX, CSV)</strong> from your Garmin or swim app — or pick a screenshot from your photo gallery showing your swim summary. AI reads both automatically.</p>
+                </div>
+                <label class="upload-button">
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></svg>
+                  Upload swim
+                  <input id="swimUpload" type="file" accept=".fit,.tcx,.gpx,.csv,.json,image/*,.jpg,.jpeg,.png,.webp,.heic">
+                </label>
+              </div>
+              <div class="ai-result" id="swimResult">
+                <span>No swim uploaded</span>
+                <strong>AI swim load estimate will appear here.</strong>
+              </div>
+              <div class="food-preview" id="swimPhotoPreview" aria-live="polite"></div>
             </div>
 
             <div class="ftp-panel">
@@ -1058,7 +1083,7 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Your logbook</p>
-                <h2>Saved rides, runs, sleep &amp; nutrition</h2>
+                <h2>Saved rides, runs, swims, sleep &amp; nutrition</h2>
               </div>
             </div>
 
@@ -1070,6 +1095,11 @@
             <div class="history-section">
               <h3>Runs</h3>
               <div class="history-list" id="historyRuns"><p class="history-empty">No runs logged yet.</p></div>
+            </div>
+
+            <div class="history-section">
+              <h3>Swims</h3>
+              <div class="history-list" id="historySwims"><p class="history-empty">No swims logged yet.</p></div>
             </div>
 
             <div class="history-section">

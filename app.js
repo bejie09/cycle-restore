@@ -59,6 +59,7 @@ const els = {
   calorieTargetLabel: document.querySelector("#calorieTargetLabel"),
   rideResult: document.querySelector("#rideResult"),
   runResult: document.querySelector("#runResult"),
+  swimResult: document.querySelector("#swimResult"),
   sleepResult: document.querySelector("#sleepResult"),
   foodResult: document.querySelector("#foodResult"),
   foodPreview: document.querySelector("#foodPreview"),
@@ -72,6 +73,7 @@ const els = {
   dailyMealTotal: document.querySelector("#mealSummary-total"),
   historyRides: document.querySelector("#historyRides"),
   historyRuns: document.querySelector("#historyRuns"),
+  historySwims: document.querySelector("#historySwims"),
   historySleep: document.querySelector("#historySleep"),
   historyNutrition: document.querySelector("#historyNutrition")
 };
@@ -105,8 +107,8 @@ const labels = {
 let currentUser = null;
 let selectedMealType = "breakfast";
 let currentNutritionTab = "photo";
-let historyData = { rides: [], runs: [], sleep: [], nutrition: [], coach: [] };
-const HISTORY_KEYS = { ride: "rides", run: "runs", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
+let historyData = { rides: [], runs: [], swims: [], sleep: [], nutrition: [], coach: [] };
+const HISTORY_KEYS = { ride: "rides", run: "runs", swim: "swims", sleep: "sleep", nutrition: "nutrition", coach: "coach" };
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -185,6 +187,30 @@ function estimateRun(file, text = "") {
   const pace = minutes / Math.max(distance, 0.1);
   const heartRate = numberFromText(lower, [/heart[_ -]?rate[^0-9]*(\d+(?:\.\d+)?)/, /\bhr[^0-9]*(\d+(?:\.\d+)?)/, /bpm[^0-9]*(\d+(?:\.\d+)?)/]);
   const load = clamp(Math.round(minutes * 0.6 + distance * 3.2 + calories / 60), 20, 180);
+  return { distance, minutes, calories, pace, heartRate, load };
+}
+
+function formatSwimPace(pacePer100m) {
+  if (!pacePer100m || !isFinite(pacePer100m)) return "—";
+  const mins = Math.floor(pacePer100m);
+  const secs = Math.round((pacePer100m - mins) * 60);
+  return `${mins}:${String(secs).padStart(2, "0")}/100m`;
+}
+
+function estimateSwim(file, text = "") {
+  const lower = `${file.name} ${text}`.toLowerCase();
+  const distance =
+    numberFromText(lower, [/distance[^0-9]*(\d+(?:\.\d+)?)/, /(\d+(?:\.\d+)?)\s?m\b/]) ||
+    clamp(Math.round(400 + fileSizeMb(file) * 300), 200, 4000);
+  const minutes =
+    numberFromText(lower, [/duration[^0-9]*(\d+(?:\.\d+)?)/, /moving_time[^0-9]*(\d+(?:\.\d+)?)/]) ||
+    clamp(Math.round(distance / 38), 10, 120);
+  const calories =
+    numberFromText(lower, [/calories[^0-9]*(\d+(?:\.\d+)?)/, /kcal[^0-9]*(\d+(?:\.\d+)?)/]) ||
+    Math.round(minutes * 9);
+  const pace = (minutes / Math.max(distance, 25)) * 100;
+  const heartRate = numberFromText(lower, [/heart[_ -]?rate[^0-9]*(\d+(?:\.\d+)?)/, /\bhr[^0-9]*(\d+(?:\.\d+)?)/, /bpm[^0-9]*(\d+(?:\.\d+)?)/]);
+  const load = clamp(Math.round(minutes * 0.7 + distance / 80 + calories / 55), 15, 170);
   return { distance, minutes, calories, pace, heartRate, load };
 }
 
@@ -425,8 +451,10 @@ function applyProfile(profile) {
 function switchRidesTab(tab) {
   document.getElementById("rides-cycling-panel").style.display = tab === "cycling" ? "" : "none";
   document.getElementById("rides-running-panel").style.display = tab === "running" ? "" : "none";
+  document.getElementById("rides-swimming-panel").style.display = tab === "swimming" ? "" : "none";
   document.getElementById("rides-tab-cycling").classList.toggle("active", tab === "cycling");
   document.getElementById("rides-tab-running").classList.toggle("active", tab === "running");
+  document.getElementById("rides-tab-swimming").classList.toggle("active", tab === "swimming");
 }
 
 function switchSleepTab(tab) {
@@ -520,7 +548,7 @@ function doSignOut() {
   document.getElementById("login-password").value = "";
   showAuthForm("register");
   applyProfile(null);
-  historyData = { rides: [], runs: [], sleep: [], nutrition: [], coach: [] };
+  historyData = { rides: [], runs: [], swims: [], sleep: [], nutrition: [], coach: [] };
   renderHistory();
   renderCoachHistory();
 }
@@ -720,6 +748,50 @@ async function applyRunEstimate(file, text) {
   });
 }
 
+async function applySwimEstimate(file, text) {
+  els.swimResult.classList.add("analyzing");
+  const fallback = estimateSwim(file, text);
+  const ai = await analyzeWithAI("swim", file, text);
+  els.swimResult.classList.remove("analyzing");
+
+  const distance   = ai?.distance_m     ?? fallback.distance;
+  const minutes    = ai?.duration_min   ?? fallback.minutes;
+  const calories   = ai?.calories       ?? fallback.calories;
+  const pace       = ai?.pace_per_100m  ?? fallback.pace;
+  const heartRate  = ai?.avg_heart_rate ?? fallback.heartRate;
+  const load       = ai?.training_load  ?? fallback.load;
+  const sessionTitle = ai?.session_title;
+  const sessionNote  = ai?.session_note;
+  const coachTip     = ai?.coach_tip;
+
+  state.trainingLoad = clamp(Math.round(load), 5, 200);
+  inputs.trainingLoad.value = state.trainingLoad;
+  state.hydration = clamp(2.4 + minutes / 130, 2.4, 4.2);
+
+  const label = ai ? "AI" : "Estimated";
+  els.swimResult.innerHTML = `
+    <span>${summarizeFile(file)}</span>
+    <strong>${label}: ${Math.round(distance)} m · ${Math.round(minutes)} min · ${formatSwimPace(pace)} · ${Math.round(calories)} kcal${heartRate ? ` · ${Math.round(heartRate)} bpm` : ""}</strong>
+    ${sessionTitle ? `<em>${escapeHtml(sessionTitle)} — ${escapeHtml(sessionNote || "")}</em>` : ""}
+    ${coachTip ? `<small>${escapeHtml(coachTip)}</small>` : ""}
+  `;
+  render();
+
+  saveHistoryRecord("swim", {
+    distance: Math.round(distance),
+    minutes: Math.round(minutes),
+    calories: Math.round(calories),
+    pace: Math.round(pace * 100) / 100,
+    heartRate: heartRate ? Math.round(heartRate) : null,
+    load: state.trainingLoad,
+    sessionTitle: sessionTitle || null,
+    sessionNote: sessionNote || null,
+    coachTip: coachTip || null,
+    filename: file.name,
+    source: ai ? "ai" : "estimated"
+  });
+}
+
 async function applySleepEstimate(file, text, headerOverride) {
   els.sleepResult.classList.add("analyzing");
   const fallback = estimateSleep(file, text);
@@ -831,6 +903,7 @@ async function fetchHistory() {
       historyData = {
         rides: data.rides || [],
         runs: data.runs || [],
+        swims: data.swims || [],
         sleep: data.sleep || [],
         nutrition: data.nutrition || [],
         coach: data.coach || []
@@ -899,6 +972,9 @@ function renderHistory() {
   );
   renderHistoryList(els.historyRuns, "run", historyData.runs, "No runs logged yet.", (r) =>
     `${r.distance} km · ${r.minutes} min · ${formatPace(r.pace)} · ${r.calories} kcal${r.heartRate ? ` · ${r.heartRate} bpm` : ""}`
+  );
+  renderHistoryList(els.historySwims, "swim", historyData.swims, "No swims logged yet.", (r) =>
+    `${r.distance} m · ${r.minutes} min · ${formatSwimPace(r.pace)} · ${r.calories} kcal${r.heartRate ? ` · ${r.heartRate} bpm` : ""}`
   );
   renderHistoryList(els.historySleep, "sleep", historyData.sleep, "No sleep records logged yet.", (r) =>
     `${formatSleep(r.duration)} sleep · ${formatSleep(r.deep)} deep · ${formatSleep(r.rem)} REM · ${r.quality}% quality`
@@ -1039,6 +1115,31 @@ document.querySelector("#runUpload").addEventListener("change", async (event) =>
     readUploadedText(file, async (text) => {
       els.runResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your run data…</strong>`;
       await applyRunEstimate(file, text);
+    });
+  }
+});
+
+document.querySelector("#swimUpload").addEventListener("change", async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+  const preview = document.querySelector("#swimPhotoPreview");
+  if (isImageFile(file)) {
+    els.swimResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your swim screenshot…</strong>`;
+    const reader = new FileReader();
+    reader.addEventListener("load", async () => {
+      showPhotoPreview(preview, reader.result, file.name);
+      await applySwimEstimate(file, "");
+    });
+    reader.addEventListener("error", async () => {
+      showPhotoPreview(preview, null, file.name);
+      await applySwimEstimate(file, "");
+    });
+    reader.readAsDataURL(file);
+  } else {
+    els.swimResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>Sending to AI for analysis…</strong>`;
+    readUploadedText(file, async (text) => {
+      els.swimResult.innerHTML = `<span>${summarizeFile(file)}</span><strong>AI is reading your swim data…</strong>`;
+      await applySwimEstimate(file, text);
     });
   }
 });
